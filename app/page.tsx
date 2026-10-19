@@ -1,58 +1,152 @@
-import { DeployButton } from "@/components/deploy-button";
-import { EnvVarWarning } from "@/components/env-var-warning";
-import { AuthButton } from "@/components/auth-button";
-import { Hero } from "@/components/hero";
-import { ThemeSwitcher } from "@/components/theme-switcher";
-import { ConnectSupabaseSteps } from "@/components/tutorial/connect-supabase-steps";
-import { SignUpUserSteps } from "@/components/tutorial/sign-up-user-steps";
-import { hasEnvVars } from "@/lib/utils";
 import Link from "next/link";
 import { Suspense } from "react";
+import { Camera, Megaphone, Search, Store, Warehouse, Wrench } from "lucide-react";
+import { FoundingOffer, FoundingOfferSkeleton } from "@/components/founding-offer";
+import { Button } from "@/components/ui/button";
+import { WaitlistForm } from "@/components/waitlist-form";
+import { TRADES } from "@/lib/site";
+import { cn } from "@/lib/utils";
+
+const AUDIENCES = [
+  {
+    icon: Wrench,
+    title: "For Techs",
+    lead: "Find parts fast.",
+    body: "Search by part number and see who has it within driving distance. Post a Wanted request and let the shelves come to you.",
+  },
+  {
+    icon: Store,
+    title: "For Shops",
+    lead: "Turn dead stock into cash.",
+    body: "Leftover-from-job and overstock parts are money sitting on a shelf. Snap a photo of the box and it's listed in under 30 seconds.",
+  },
+  {
+    icon: Warehouse,
+    title: "For Supply Houses",
+    lead: "Clear obsolete inventory.",
+    body: "Put discontinued and slow-moving stock in front of every tech in your region who's hunting for exactly that part.",
+  },
+];
+
+const FEATURES = [
+  {
+    icon: Camera,
+    title: "Photo-to-listing",
+    body: "Snap the box label or nameplate. Partsaur reads the brand, part number, and specs for you.",
+  },
+  {
+    icon: Megaphone,
+    title: "Wanted board",
+    body: "\"Need this by Friday within 150 miles.\" We ping sellers nearby who have it.",
+  },
+  {
+    icon: Search,
+    title: "Search by part number",
+    body: "Dashes, spaces, whatever — we match the part number the way techs actually type it.",
+  },
+];
 
 export default function Home() {
   return (
-    <main className="min-h-screen flex flex-col items-center">
-      <div className="flex-1 w-full flex flex-col gap-20 items-center">
-        <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
-          <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
-            <div className="flex gap-5 items-center font-semibold">
-              <Link href={"/"}>Next.js Supabase Starter</Link>
-              <div className="flex items-center gap-2">
-                <DeployButton />
+    <>
+      {/* Hero */}
+      <section className="mx-auto max-w-5xl px-4 pb-12 pt-12 sm:pt-20">
+        <div className="flex flex-wrap gap-2">
+          {TRADES.map((t) => (
+            <span
+              key={t.value}
+              className={cn(
+                "rounded-full border px-3 py-1 text-sm",
+                t.status === "Launching"
+                  ? "border-primary bg-primary/10 font-semibold text-primary"
+                  : "text-muted-foreground",
+              )}
+            >
+              {t.label} · {t.status}
+            </span>
+          ))}
+        </div>
+        <h1 className="mt-6 text-4xl font-black leading-[1.05] tracking-tight sm:text-6xl">
+          Find the part.
+          <br />
+          <span className="text-primary">Sell the dead stock.</span>
+        </h1>
+        <p className="mt-5 max-w-2xl text-lg text-muted-foreground sm:text-xl">
+          Unit&apos;s down. The part&apos;s 3 weeks out from the supply house. Someone nearby has
+          it sitting on a shelf. Partsaur connects you.
+        </p>
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <Button asChild size="xl">
+            <Link href="#waitlist">Join the waitlist</Link>
+          </Button>
+          <Button asChild size="xl" variant="outline">
+            <Link href="#founding">Founding pricing</Link>
+          </Button>
+        </div>
+      </section>
+
+      {/* Who it's for */}
+      <section className="mx-auto max-w-5xl px-4 py-10">
+        <div className="grid gap-4 md:grid-cols-3">
+          {AUDIENCES.map(({ icon: Icon, title, lead, body }) => (
+            <div key={title} className="rounded-xl border bg-card p-5">
+              <Icon className="size-8 text-primary" aria-hidden />
+              <h2 className="mt-3 text-sm font-bold uppercase tracking-wide text-muted-foreground">
+                {title}
+              </h2>
+              <p className="mt-1 text-xl font-bold">{lead}</p>
+              <p className="mt-2 text-muted-foreground">{body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="mx-auto max-w-5xl px-4 py-10">
+        <h2 className="text-2xl font-black sm:text-3xl">Built for the mechanical room</h2>
+        <div className="mt-6 grid gap-6 md:grid-cols-3">
+          {FEATURES.map(({ icon: Icon, title, body }) => (
+            <div key={title} className="flex gap-4">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <Icon className="size-6 text-primary" aria-hidden />
+              </div>
+              <div>
+                <h3 className="font-bold">{title}</h3>
+                <p className="text-muted-foreground">{body}</p>
               </div>
             </div>
-            {!hasEnvVars ? (
-              <EnvVarWarning />
-            ) : (
-              <Suspense>
-                <AuthButton />
-              </Suspense>
-            )}
-          </div>
-        </nav>
-        <div className="flex-1 flex flex-col gap-20 max-w-5xl p-5">
-          <Hero />
-          <main className="flex-1 flex flex-col gap-6 px-4">
-            <h2 className="font-medium text-xl mb-4">Next steps</h2>
-            {hasEnvVars ? <SignUpUserSteps /> : <ConnectSupabaseSteps />}
-          </main>
+          ))}
         </div>
+      </section>
 
-        <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">
-          <p>
-            Powered by{" "}
-            <a
-              href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
-              target="_blank"
-              className="font-bold hover:underline"
-              rel="noreferrer"
-            >
-              Supabase
-            </a>
+      {/* Founding offer */}
+      <section id="founding" className="mx-auto max-w-5xl scroll-mt-20 px-4 py-10">
+        <h2 className="text-2xl font-black sm:text-3xl">Founding members</h2>
+        <p className="mt-2 max-w-2xl text-muted-foreground">
+          The first 50 shops and first 10 supply houses lock in their price for life. Buying and
+          posting Wanted requests is always free.{" "}
+          <Link href="/pricing" className="font-semibold text-primary underline-offset-4 hover:underline">
+            Full pricing
+          </Link>
+        </p>
+        <div className="mt-6">
+          <Suspense fallback={<FoundingOfferSkeleton />}>
+            <FoundingOffer />
+          </Suspense>
+        </div>
+      </section>
+
+      {/* Waitlist */}
+      <section id="waitlist" className="mx-auto max-w-2xl scroll-mt-20 px-4 py-10">
+        <div className="rounded-2xl border-2 bg-card p-5 sm:p-8">
+          <h2 className="text-2xl font-black sm:text-3xl">Get in early</h2>
+          <p className="mb-6 mt-2 text-muted-foreground">
+            We&apos;re opening HVAC/R first. Tell us where you are and we&apos;ll let you know
+            when Partsaur goes live near you.
           </p>
-          <ThemeSwitcher />
-        </footer>
-      </div>
-    </main>
+          <WaitlistForm />
+        </div>
+      </section>
+    </>
   );
 }
