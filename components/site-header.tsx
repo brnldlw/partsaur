@@ -8,9 +8,14 @@ async function AccountButton() {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   return data?.claims ? (
-    <Button asChild className="h-11 px-4 text-base font-semibold">
-      <Link href="/account">Account</Link>
-    </Button>
+    <>
+      <Button asChild variant="ghost" className="h-11 px-3 text-base">
+        <Link href="/account">Account</Link>
+      </Button>
+      <Button asChild className="h-11 px-4 text-base font-semibold">
+        <Link href="/sell/new">Sell</Link>
+      </Button>
+    </>
   ) : (
     <SignInButton />
   );

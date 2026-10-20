@@ -74,6 +74,15 @@ export function ProfileForm({
         placeholder="555-555-5555"
         defaultValue={profile?.phone ?? ""}
       />
+      <label className="-mt-3 flex min-h-12 cursor-pointer items-center gap-3">
+        <input
+          type="checkbox"
+          name="show_phone"
+          defaultChecked={profile?.show_phone ?? false}
+          className="size-5 accent-primary"
+        />
+        <span>Show my phone number to signed-in buyers on my listings</span>
+      </label>
 
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-2 font-semibold">Your trade</legend>

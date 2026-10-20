@@ -32,6 +32,8 @@ export async function saveProfile(
 
   if (!displayName || displayName.length > 80) return { ok: false, error: "Enter your name." };
   if (phone && phone.length !== 10) return { ok: false, error: "Phone should be 10 digits." };
+  const showPhone = formData.get("show_phone") === "on";
+  if (showPhone && !phone) return { ok: false, error: "Add a phone number to show it to buyers." };
   if (!TRADES.some((t) => t.value === trade)) return { ok: false, error: "Pick a trade." };
   if (!ROLES.some((r) => r.value === role)) return { ok: false, error: "Pick your role." };
   if (!/^\d{5}$/.test(zip)) return { ok: false, error: "Zip code should be 5 digits." };
@@ -90,6 +92,7 @@ export async function saveProfile(
   const profile = {
     display_name: displayName,
     phone: phone || null,
+    show_phone: showPhone,
     trade,
     role,
     business_id: businessId,

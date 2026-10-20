@@ -3,10 +3,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { signOut } from "@/app/actions/auth";
+import { Epa608Upload } from "@/components/epa608-upload";
 import { ProfileForm } from "@/components/profile-form";
 import { Button } from "@/components/ui/button";
 import { PLAN_LABELS } from "@/lib/plans";
 import { getAccount } from "@/lib/profile";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Your account",
@@ -20,6 +22,15 @@ async function Account({ searchParams }: { searchParams: Promise<{ welcome?: str
   ]);
   if (!user) redirect("/login?next=/account");
   if (!profile) redirect("/onboarding");
+
+  const supabase = await createClient();
+  const { data: certs } = await supabase
+    .from("certifications")
+    .select("status, created_at")
+    .eq("type", "epa608")
+    .order("created_at", { ascending: false })
+    .limit(1);
+  const latestCert = certs?.[0];
 
   const plan = business?.plan ?? "free";
   const isFounding = plan === "founding_shop" || plan === "founding_supply";
@@ -55,8 +66,32 @@ async function Account({ searchParams }: { searchParams: Promise<{ welcome?: str
         <p className="mt-3 text-sm text-muted-foreground">Signed in as {user.email}</p>
       </section>
 
+      <div className="mb-8 grid grid-cols-2 gap-2">
+        <Button asChild size="xl"><Link href="/sell/new">List a part</Link></Button>
+        <Button asChild size="xl" variant="outline"><Link href="/dashboard/listings">My listings</Link></Button>
+      </div>
+
       <h2 className="mb-4 text-xl font-bold">Profile</h2>
       <ProfileForm mode="account" profile={profile} business={business} />
+
+      <section id="epa608" className="mt-10 scroll-mt-20 border-t pt-6">
+        <h2 className="mb-2 text-xl font-bold">EPA 608 certification</h2>
+        {profile.epa608_verified ? (
+          <p className="rounded-lg border-2 border-primary bg-primary/10 p-4 font-semibold">
+            ✓ Verified — you can buy refrigerant listings.
+          </p>
+        ) : latestCert?.status === "pending" ? (
+          <p className="rounded-lg border-2 p-4">Submitted — under review, usually within a day.</p>
+        ) : (
+          <>
+            <p className="mb-4 text-muted-foreground">
+              Required to contact sellers about refrigerant.
+              {latestCert?.status === "rejected" && " Your last upload couldn't be verified — try a clearer photo."}
+            </p>
+            <Epa608Upload userId={user.id} />
+          </>
+        )}
+      </section>
 
       <form action={signOut} className="mt-10 border-t pt-6">
         <Button type="submit" variant="outline" size="xl" className="w-full">
