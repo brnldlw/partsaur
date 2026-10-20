@@ -6,16 +6,9 @@ import { joinWaitlist, type WaitlistState } from "@/app/actions/waitlist";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioCard } from "@/components/radio-card";
 import { FOUNDING_PLANS, type FoundingPlan } from "@/lib/founding";
 import { ROLES, TRADES, type Trade } from "@/lib/site";
-import { cn } from "@/lib/utils";
-
-const choiceClass = (selected: boolean) =>
-  cn(
-    "flex min-h-14 cursor-pointer flex-col justify-center rounded-lg border-2 px-3 py-2 text-left transition-colors",
-    "has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring",
-    selected ? "border-primary bg-primary/10" : "border-border hover:border-foreground/30",
-  );
 
 /**
  * Plain waitlist (trade + role + email + zip), or — when `plan` is given —
@@ -64,25 +57,16 @@ export function WaitlistForm({ plan }: { plan?: FoundingPlan }) {
             <legend className="mb-2 text-sm font-semibold">Your trade</legend>
             <div className="grid grid-cols-3 gap-2">
               {TRADES.map((t) => (
-                <label key={t.value} className={choiceClass(trade === t.value)}>
-                  <input
-                    type="radio"
-                    name="trade"
-                    value={t.value}
-                    checked={trade === t.value}
-                    onChange={() => setTrade(t.value)}
-                    className="sr-only"
-                  />
-                  <span className="font-semibold">{t.label}</span>
-                  <span
-                    className={cn(
-                      "text-xs",
-                      t.status === "Launching" ? "font-semibold text-primary" : "text-muted-foreground",
-                    )}
-                  >
-                    {t.status}
-                  </span>
-                </label>
+                <RadioCard
+                  key={t.value}
+                  name="trade"
+                  value={t.value}
+                  checked={trade === t.value}
+                  onSelect={() => setTrade(t.value)}
+                  label={t.label}
+                  sublabel={t.status}
+                  highlightSublabel={t.status === "Launching"}
+                />
               ))}
             </div>
           </fieldset>
@@ -91,17 +75,14 @@ export function WaitlistForm({ plan }: { plan?: FoundingPlan }) {
             <legend className="mb-2 text-sm font-semibold">I&apos;m a…</legend>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
               {ROLES.map((r) => (
-                <label key={r.value} className={choiceClass(role === r.value)}>
-                  <input
-                    type="radio"
-                    name="role"
-                    value={r.value}
-                    checked={role === r.value}
-                    onChange={() => setRole(r.value)}
-                    className="sr-only"
-                  />
-                  <span className="font-semibold">{r.label}</span>
-                </label>
+                <RadioCard
+                  key={r.value}
+                  name="role"
+                  value={r.value}
+                  checked={role === r.value}
+                  onSelect={() => setRole(r.value)}
+                  label={r.label}
+                />
               ))}
             </div>
           </fieldset>

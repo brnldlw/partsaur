@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { hasEnvVars } from "../utils";
 
-const PROTECTED_PREFIXES = ["/account", "/dashboard", "/sell"];
+const PROTECTED_PREFIXES = ["/account", "/onboarding", "/dashboard", "/sell"];
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -56,7 +56,8 @@ export async function updateSession(request: NextRequest) {
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
-    url.pathname = "/auth/login";
+    url.pathname = "/login";
+    url.search = `?next=${encodeURIComponent(request.nextUrl.pathname)}`;
     return NextResponse.redirect(url);
   }
 

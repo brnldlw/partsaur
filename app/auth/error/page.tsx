@@ -1,51 +1,30 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
 import { Suspense } from "react";
+import { Button } from "@/components/ui/button";
 
-async function ErrorContent({
-  searchParams,
-}: {
-  searchParams: Promise<{ error: string }>;
-}) {
-  const params = await searchParams;
-
-  return (
-    <>
-      {params?.error ? (
-        <p className="text-sm text-muted-foreground">
-          Code error: {params.error}
-        </p>
-      ) : (
-        <p className="text-sm text-muted-foreground">
-          An unspecified error occurred.
-        </p>
-      )}
-    </>
-  );
+async function ErrorMessage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const { error } = await searchParams;
+  return <p className="text-muted-foreground">{error ?? "Something went wrong signing you in."}</p>;
 }
 
-export default function Page({
+export default function AuthErrorPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error: string }>;
+  searchParams: Promise<{ error?: string }>;
 }) {
   return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-      <div className="w-full max-w-sm">
-        <div className="flex flex-col gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl">
-                Sorry, something went wrong.
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Suspense>
-                <ErrorContent searchParams={searchParams} />
-              </Suspense>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+    <div className="mx-auto flex max-w-md flex-col gap-4 px-4 py-16">
+      <h1 className="text-3xl font-black">That login didn&apos;t work</h1>
+      <Suspense>
+        <ErrorMessage searchParams={searchParams} />
+      </Suspense>
+      <p className="text-muted-foreground">
+        Login links expire after an hour and only work once. Request a new one — or type the code
+        from the email instead.
+      </p>
+      <Button asChild size="xl">
+        <Link href="/login">Back to sign in</Link>
+      </Button>
     </div>
   );
 }

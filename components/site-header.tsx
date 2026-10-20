@@ -1,6 +1,28 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { Wordmark } from "@/components/wordmark";
 import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/server";
+
+async function AccountButton() {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getClaims();
+  return data?.claims ? (
+    <Button asChild className="h-11 px-4 text-base font-semibold">
+      <Link href="/account">Account</Link>
+    </Button>
+  ) : (
+    <SignInButton />
+  );
+}
+
+function SignInButton() {
+  return (
+    <Button asChild className="h-11 px-4 text-base font-semibold">
+      <Link href="/login">Sign in</Link>
+    </Button>
+  );
+}
 
 export function SiteHeader() {
   return (
@@ -13,9 +35,9 @@ export function SiteHeader() {
           <Button asChild variant="ghost" className="h-11 px-3 text-base">
             <Link href="/pricing">Pricing</Link>
           </Button>
-          <Button asChild className="h-11 px-4 text-base font-semibold">
-            <Link href="/#waitlist">Join</Link>
-          </Button>
+          <Suspense fallback={<SignInButton />}>
+            <AccountButton />
+          </Suspense>
         </div>
       </nav>
     </header>
