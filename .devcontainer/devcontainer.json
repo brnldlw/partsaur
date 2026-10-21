@@ -1,0 +1,22 @@
+{
+  "name": "Partsaur",
+  // Same image GitHub Codespaces uses by default (Node, git, gh, etc.).
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "features": {
+    // Installs Claude Code when the Codespace is built.
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1": {}
+  },
+  // Safety net: if Claude Code is ever missing on start, install it.
+  "postStartCommand": "command -v claude >/dev/null 2>&1 || npm install -g @anthropic-ai/claude-code",
+  // Install the app's packages the first time the Codespace is created.
+  "postCreateCommand": "npm install",
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": { "label": "Partsaur (npm run dev)", "onAutoForward": "notify" }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["anthropic.claude-code", "dbaeumer.vscode-eslint", "bradlc.vscode-tailwindcss"]
+    }
+  }
+}
