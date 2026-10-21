@@ -83,6 +83,15 @@ export function ProfileForm({
         />
         <span>Show my phone number to signed-in buyers on my listings</span>
       </label>
+      <label className="-mt-3 flex min-h-12 cursor-pointer items-center gap-3">
+        <input
+          type="checkbox"
+          name="wanted_pings"
+          defaultChecked={profile?.wanted_pings ?? true}
+          className="size-5 accent-primary"
+        />
+        <span>Email me when a tech nearby needs a part I might have</span>
+      </label>
 
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-2 font-semibold">Your trade</legend>

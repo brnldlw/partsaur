@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import { FOUNDING_PLANS, type FoundingPlan } from "@/lib/founding";
+import { BOOST_PRICE_CENTS } from "@/lib/wanted";
 
 export function isStripeEnabled() {
   return Boolean(process.env.STRIPE_SECRET_KEY);
@@ -31,6 +32,20 @@ export async function getFoundingPriceId(stripe: Stripe, plan: FoundingPlan) {
     recurring: { interval: "month" },
     lookup_key: config.lookupKey,
     product_data: { name: `Partsaur ${config.name}` },
+  });
+  return price.id;
+}
+
+/** One-time $9 Urgent Wanted Boost price, created on first use. */
+export async function getBoostPriceId(stripe: Stripe) {
+  const lookupKey = "wanted_boost_once";
+  const existing = await stripe.prices.list({ lookup_keys: [lookupKey], active: true, limit: 1 });
+  if (existing.data[0]) return existing.data[0].id;
+  const price = await stripe.prices.create({
+    currency: "usd",
+    unit_amount: BOOST_PRICE_CENTS,
+    lookup_key: lookupKey,
+    product_data: { name: "Partsaur Urgent Wanted Boost (72 hours)" },
   });
   return price.id;
 }

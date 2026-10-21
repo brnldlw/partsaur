@@ -12,6 +12,7 @@ export type Profile = {
   zip: string;
   epa608_verified: boolean;
   show_phone: boolean;
+  wanted_pings: boolean;
 };
 
 export type Business = {
@@ -33,7 +34,7 @@ export async function getAccount() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, display_name, phone, trade, role, business_id, zip, epa608_verified, show_phone")
+    .select("id, display_name, phone, trade, role, business_id, zip, epa608_verified, show_phone, wanted_pings")
     .eq("id", user.id)
     .maybeSingle<Profile>();
 

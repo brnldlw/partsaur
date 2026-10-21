@@ -93,6 +93,7 @@ export async function saveProfile(
     display_name: displayName,
     phone: phone || null,
     show_phone: showPhone,
+    wanted_pings: formData.get("wanted_pings") === "on",
     trade,
     role,
     business_id: businessId,

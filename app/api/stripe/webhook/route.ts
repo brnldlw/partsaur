@@ -1,5 +1,7 @@
 import type Stripe from "stripe";
 import { isFoundingPlan } from "@/lib/founding";
+import { runWantedMatching } from "@/lib/matching";
+import { BOOST_HOURS } from "@/lib/wanted";
 import { getStripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -53,6 +55,33 @@ export async function POST(request: Request) {
         console.error("founding_signups insert failed:", error.message);
         // 500 tells Stripe to retry later.
         return new Response("DB error", { status: 500 });
+      }
+    }
+  }
+
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object;
+    const wantedId = session.metadata?.wanted_id;
+    if (session.mode === "payment" && session.metadata?.kind === "wanted_boost" && wantedId && session.payment_status === "paid") {
+      const admin = createAdminClient();
+      const { data: wanted } = await admin
+        .from("wanted_requests")
+        .select("boosted_until")
+        .eq("id", wantedId)
+        .maybeSingle();
+      if (wanted) {
+        // Stack boosts: extend from the current end if still boosted.
+        const start = Math.max(Date.now(), wanted.boosted_until ? Date.parse(wanted.boosted_until) : 0);
+        const { error } = await admin
+          .from("wanted_requests")
+          .update({ boosted_until: new Date(start + BOOST_HOURS * 3600_000).toISOString() })
+          .eq("id", wantedId);
+        if (error) {
+          console.error("boost update failed:", error.message);
+          return new Response("DB error", { status: 500 });
+        }
+        // Wider radius → ping sellers who were out of range before.
+        await runWantedMatching(wantedId).catch((e) => console.error("boost matching failed:", e));
       }
     }
   }

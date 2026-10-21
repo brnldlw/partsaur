@@ -6,6 +6,7 @@ import { cacheLife, cacheTag } from "next/cache";
 import { ListingCard } from "@/components/listing-card";
 import { LocationButton } from "@/components/location-button";
 import { NotifyForm } from "@/components/notify-form";
+import { Button } from "@/components/ui/button";
 import { categoryLabel } from "@/lib/categories";
 import { formatPrice } from "@/lib/listings";
 import { getAccount } from "@/lib/profile";
@@ -120,6 +121,16 @@ async function PartListings({ part, searchParams }: { part: Part; searchParams: 
           ))}
         </ul>
       )}
+
+      <div className="flex flex-col gap-2 rounded-xl border-2 border-primary p-4">
+        <p className="font-bold">Unit down and you need it now?</p>
+        <p className="text-muted-foreground">Post a Wanted request and we&apos;ll ping sellers nearby who have it.</p>
+        <Button asChild size="xl" className="mt-1">
+          <Link href={`/wanted/new?pn=${encodeURIComponent(part.part_number)}${part.brand ? `&brand=${encodeURIComponent(part.brand)}` : ""}`}>
+            Post a Wanted request
+          </Link>
+        </Button>
+      </div>
 
       <NotifyForm
         partNumber={part.part_number}

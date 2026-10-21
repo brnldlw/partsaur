@@ -174,7 +174,12 @@ async function Results({ searchParams }: { searchParams: Promise<SearchQuery> })
               )}
             </p>
             {q && (
-              <NotifyForm partNumber={q} editablePartNumber defaultEmail={user?.email} defaultZip={profile?.zip} />
+              <>
+                <Button asChild size="xl">
+                  <Link href={`/wanted/new?pn=${encodeURIComponent(q)}`}>Post a Wanted request for {q.length > 24 ? "it" : q}</Link>
+                </Button>
+                <NotifyForm partNumber={q} editablePartNumber defaultEmail={user?.email} defaultZip={profile?.zip} />
+              </>
             )}
           </div>
         ) : view === "map" ? (

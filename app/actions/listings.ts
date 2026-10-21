@@ -1,11 +1,13 @@
 "use server";
 
 import { updateTag } from "next/cache";
+import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { extractPartFromImage, type ExtractResult } from "@/lib/ai/extract-part";
 import { MAX_PHOTOS } from "@/lib/categories";
 import { MAX_IMPORT_ROWS, parseListingInput } from "@/lib/listing-input";
 import { listingTag, PAID_PLANS } from "@/lib/listings";
+import { runListingMatching } from "@/lib/matching";
 import { getAccount } from "@/lib/profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -131,6 +133,9 @@ export async function saveListing(_prev: ListingFormState, formData: FormData): 
   if (removed.length) await supabase.storage.from(PHOTO_BUCKET).remove(removed);
 
   updateTag(listingTag(id));
+  if (!listingId) {
+    after(() => runListingMatching(id).catch((e) => console.error("listing matching failed:", e)));
+  }
   redirect(listingId ? "/dashboard/listings?saved=1" : `/listing/${id}?new=1`);
 }
 
@@ -187,16 +192,27 @@ export async function importListings(rows: Record<string, unknown>[]): Promise<I
   });
   if (rowErrors.length) return { ok: false, error: "Fix the highlighted rows and try again.", rowErrors };
 
-  const { error } = await supabase.from("listings").insert(
-    valid.map((r) => ({
-      ...r,
-      seller_id: user.id,
-      business_id: business.id,
-      trade: profile.trade,
-      status: "active",
-    })),
-  );
+  const { data: inserted, error } = await supabase
+    .from("listings")
+    .insert(
+      valid.map((r) => ({
+        ...r,
+        seller_id: user.id,
+        business_id: business.id,
+        trade: profile.trade,
+        status: "active",
+      })),
+    )
+    .select("id, part_number");
   if (error) return { ok: false, error: friendlyDbError(error.message) };
+
+  // Match listings with part numbers against open Wanted requests / alerts.
+  const toMatch = (inserted ?? []).filter((l) => l.part_number).map((l) => l.id);
+  after(async () => {
+    for (const listingId of toMatch) {
+      await runListingMatching(listingId).catch((e) => console.error("listing matching failed:", e));
+    }
+  });
   return { ok: true, imported: valid.length };
 }
 

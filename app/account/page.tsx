@@ -69,6 +69,7 @@ async function Account({ searchParams }: { searchParams: Promise<{ welcome?: str
       <div className="mb-8 grid grid-cols-2 gap-2">
         <Button asChild size="xl"><Link href="/sell/new">List a part</Link></Button>
         <Button asChild size="xl" variant="outline"><Link href="/dashboard/listings">My listings</Link></Button>
+        <Button asChild size="xl" variant="outline" className="col-span-2"><Link href="/dashboard/wanted">My Wanted requests</Link></Button>
       </div>
 
       <h2 className="mb-4 text-xl font-bold">Profile</h2>
