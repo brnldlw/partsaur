@@ -244,12 +244,13 @@ export async function respondHaveIt(token: string): Promise<HaveItResult> {
     .from("matches")
     .update({ seller_response: "have_it", responded_at: new Date().toISOString() })
     .eq("id", match.id);
-  await admin
+  const { error: convError } = await admin
     .from("conversations")
     .upsert(
       { wanted_id: wanted.id, buyer_id: requester.id, seller_id: seller.id },
       { onConflict: "wanted_id,seller_id", ignoreDuplicates: true },
     );
+  if (convError) console.error("conversation upsert failed:", convError.message);
 
   await sendEmail({
     kind: "have_it",

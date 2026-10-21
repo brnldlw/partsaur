@@ -156,7 +156,7 @@ create table if not exists public.conversations (
 );
 
 create unique index if not exists conversations_wanted_seller_key
-  on public.conversations (wanted_id, seller_id) where wanted_id is not null;
+  on public.conversations (wanted_id, seller_id);
 
 alter table public.conversations enable row level security;
 
