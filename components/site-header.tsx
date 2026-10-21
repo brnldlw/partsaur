@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { Search } from "lucide-react";
 import { Wordmark } from "@/components/wordmark";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
@@ -38,6 +39,9 @@ export function SiteHeader() {
         </Link>
         <div className="flex items-center gap-1 sm:gap-3">
           <Button asChild variant="ghost" className="h-11 px-3 text-base">
+            <Link href="/search" aria-label="Search parts"><Search className="!size-5" /><span className="hidden sm:inline">Search</span></Link>
+          </Button>
+          <Button asChild variant="ghost" className="hidden h-11 px-3 text-base sm:inline-flex">
             <Link href="/pricing">Pricing</Link>
           </Button>
           <Suspense fallback={<SignInButton />}>

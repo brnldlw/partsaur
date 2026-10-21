@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { Camera, Megaphone, Search, Store, Warehouse, Wrench } from "lucide-react";
 import { FoundingOffer, FoundingOfferSkeleton } from "@/components/founding-offer";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { WaitlistForm } from "@/components/waitlist-form";
 import { TRADES } from "@/lib/site";
 import { cn } from "@/lib/utils";
@@ -75,9 +76,23 @@ export default function Home() {
           Unit&apos;s down. The part&apos;s 3 weeks out from the supply house. Someone nearby has
           it sitting on a shelf. Partsaur connects you.
         </p>
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <Button asChild size="xl">
-            <Link href="#waitlist">Join the waitlist</Link>
+        <form action="/search" className="mt-8 flex max-w-2xl gap-2">
+          <Input
+            name="q"
+            placeholder="Part #, brand, or what it is"
+            aria-label="Search parts"
+            autoCapitalize="characters"
+            autoCorrect="off"
+            spellCheck={false}
+            className="h-14 flex-1 text-lg"
+          />
+          <Button type="submit" size="xl" className="h-14 px-5" aria-label="Search">
+            <Search className="!size-5" /> <span className="hidden sm:inline">Search</span>
+          </Button>
+        </form>
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+          <Button asChild size="xl" variant="outline">
+            <Link href="/sell/new">Sell a part</Link>
           </Button>
           <Button asChild size="xl" variant="outline">
             <Link href="#founding">Founding pricing</Link>

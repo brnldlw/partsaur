@@ -10,6 +10,7 @@ import { categoryLabel, conditionLabel } from "@/lib/categories";
 import { milesBetween } from "@/lib/geo";
 import { formatPrice, listingTag, photoUrl } from "@/lib/listings";
 import { getAccount } from "@/lib/profile";
+import { SITE_URL } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 import { createPublicClient } from "@/lib/supabase/public";
 
@@ -34,6 +35,7 @@ type PublicListing = {
   business_name: string | null;
   lat: number | null;
   lng: number | null;
+  part_slug: string | null;
   photos: { storage_path: string }[];
 };
 
@@ -124,9 +126,34 @@ async function ListingView({
   if (!listing) notFound();
 
   const [cover, ...rest] = listing.photos;
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: listing.title,
+    ...(listing.part_number && { mpn: listing.part_number }),
+    ...(listing.brand && { brand: { "@type": "Brand", name: listing.brand } }),
+    ...(cover && { image: photoUrl(cover.storage_path) }),
+    ...(listing.description && { description: listing.description.slice(0, 500) }),
+    ...(listing.price_cents != null && {
+      offers: {
+        "@type": "Offer",
+        priceCurrency: "USD",
+        price: (listing.price_cents / 100).toFixed(2),
+        availability: listing.status === "sold" ? "https://schema.org/SoldOut" : "https://schema.org/InStock",
+        itemCondition: listing.condition === "used_working" || listing.condition === "for_parts"
+          ? "https://schema.org/UsedCondition"
+          : "https://schema.org/NewCondition",
+        url: `${SITE_URL}/listing/${listing.id}`,
+      },
+    }),
+  };
 
   return (
     <article className="grid gap-6 md:grid-cols-2">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+      />
       <div className="flex flex-col gap-2">
         <div className="aspect-square overflow-hidden rounded-xl border bg-muted">
           {cover ? (
@@ -164,6 +191,11 @@ async function ListingView({
           <p className="text-lg">
             {listing.brand && <span className="font-semibold">{listing.brand} </span>}
             {listing.part_number && <span className="font-mono">{listing.part_number}</span>}
+            {listing.part_slug && (
+              <Link href={`/part/${listing.part_slug}`} className="ml-2 text-sm font-semibold text-primary underline-offset-4 hover:underline">
+                See all for this part
+              </Link>
+            )}
           </p>
         )}
         <p className="text-3xl font-black">
