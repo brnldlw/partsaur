@@ -2,90 +2,80 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Mail, MessageSquare, Phone } from "lucide-react";
+import { MessageCircle, MessageSquare, Phone } from "lucide-react";
 import { getSellerContact, type ContactResult } from "@/app/actions/listings";
+import { startListingConversation } from "@/app/actions/messages";
 import { Button } from "@/components/ui/button";
+
+const CONTACT_ERRORS: Record<string, React.ReactNode> = {
+  onboarding: (
+    <>Finish setting up your account first. <Link href="/onboarding" className="font-semibold underline">Set up</Link></>
+  ),
+  not_available: "This listing isn't available anymore.",
+  own_listing: "This is your listing.",
+  epa608_required: (
+    <>
+      Refrigerant sales require an approved EPA 608 certification.{" "}
+      <Link href="/account#epa608" className="font-semibold underline">Upload your card</Link> — approval usually takes a day.
+    </>
+  ),
+  error: "Something went wrong. Try again.",
+};
 
 export function ContactSeller({
   listingId,
   listingTitle,
   signedIn,
+  error,
 }: {
   listingId: string;
   listingTitle: string;
   signedIn: boolean;
+  /** From ?contact= after a failed "Message seller". */
+  error?: string;
 }) {
-  const [result, setResult] = useState<ContactResult | null>(null);
+  const [phone, setPhone] = useState<ContactResult | null>(null);
   const [pending, setPending] = useState(false);
-  const next = `/listing/${listingId}`;
 
-  if (!signedIn || (result && !result.ok && result.reason === "sign_in")) {
+  if (!signedIn) {
     return (
       <Button asChild size="xl" className="w-full">
-        <Link href={`/login?next=${encodeURIComponent(next)}`}>Sign in to contact seller</Link>
+        <Link href={`/login?next=${encodeURIComponent(`/listing/${listingId}`)}`}>Sign in to message seller</Link>
       </Button>
     );
   }
 
-  if (!result) {
-    return (
-      <Button
-        type="button"
-        size="xl"
-        className="w-full"
-        disabled={pending}
-        onClick={async () => {
-          setPending(true);
-          setResult(await getSellerContact(listingId));
-          setPending(false);
-        }}
-      >
-        {pending ? "Loading…" : "Contact seller"}
-      </Button>
-    );
-  }
-
-  if (!result.ok) {
-    const messages: Record<string, React.ReactNode> = {
-      onboarding: (
-        <>Finish setting up your account first. <Link href="/onboarding" className="font-semibold underline">Set up</Link></>
-      ),
-      not_available: "This listing isn't available anymore.",
-      epa608_required: (
-        <>
-          Refrigerant sales require an approved EPA 608 certification.{" "}
-          <Link href="/account#epa608" className="font-semibold underline">Upload your card</Link> — approval usually
-          takes a day.
-        </>
-      ),
-      error: "Something went wrong. Try again.",
-    };
-    return <p role="alert" className="rounded-lg border-2 p-4">{messages[result.reason]}</p>;
-  }
-
-  const subject = encodeURIComponent(`Partsaur: ${listingTitle}`);
-  const body = encodeURIComponent(`Hi ${result.name}, I saw your listing on Partsaur: ${listingTitle}. Is it still available?\n\n`);
   const smsBody = encodeURIComponent(`Hi, saw your Partsaur listing: ${listingTitle}. Still available?`);
+  const phoneError = phone && !phone.ok ? phone.reason : null;
+  const shownError = error ?? phoneError;
 
   return (
-    <div className="flex flex-col gap-2 rounded-xl border-2 border-primary p-4">
-      <p className="font-bold">Contact {result.name}</p>
-      {result.phone && (
+    <div className="flex flex-col gap-2">
+      {shownError && <p role="alert" className="rounded-lg border-2 p-4">{CONTACT_ERRORS[shownError] ?? CONTACT_ERRORS.error}</p>}
+      <form action={startListingConversation}>
+        <input type="hidden" name="listing_id" value={listingId} />
+        <Button type="submit" size="xl" className="w-full"><MessageCircle /> Message seller</Button>
+      </form>
+
+      {!phone ? (
+        <Button type="button" variant="outline" size="xl" disabled={pending}
+          onClick={async () => {
+            setPending(true);
+            setPhone(await getSellerContact(listingId));
+            setPending(false);
+          }}>
+          <Phone /> {pending ? "Loading…" : "Call or text"}
+        </Button>
+      ) : phone.ok && phone.phone ? (
         <div className="grid grid-cols-2 gap-2">
-          <Button asChild size="xl"><a href={`tel:${result.phone}`}><Phone /> Call</a></Button>
-          <Button asChild size="xl" variant="outline"><a href={`sms:${result.phone}?&body=${smsBody}`}><MessageSquare /> Text</a></Button>
+          <Button asChild size="xl" variant="outline"><a href={`tel:${phone.phone}`}><Phone /> Call {phone.name}</a></Button>
+          <Button asChild size="xl" variant="outline"><a href={`sms:${phone.phone}?&body=${smsBody}`}><MessageSquare /> Text</a></Button>
         </div>
-      )}
-      <Button asChild size="xl" variant={result.phone ? "outline" : "default"}>
-        <a href={`mailto:${result.email}?subject=${subject}&body=${body}`}><Mail /> Email</a>
-      </Button>
-      <p className="break-all text-sm text-muted-foreground">
-        {result.email}
-        {result.phone && ` · ${result.phone.replace(/(\d{3})(\d{3})(\d{4})/, "($1) $2-$3")}`}
-      </p>
-      <p className="text-xs text-muted-foreground">
-        Arrange payment and pickup directly. Inspect parts before you pay.
-      </p>
+      ) : phone.ok ? (
+        <p className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">{phone.name} prefers messages — use Message seller.</p>
+      ) : null}
+
+      <p className="text-xs text-muted-foreground">Arrange payment and pickup directly. Inspect parts before you pay.</p>
     </div>
   );
 }

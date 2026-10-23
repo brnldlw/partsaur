@@ -193,7 +193,10 @@ export function ListingForm({
         </div>
 
         <fieldset className="flex flex-col gap-2">
-          <legend className="mb-2 font-semibold">Condition</legend>
+          <legend className="mb-2 font-semibold">
+            Condition{" "}
+            <a href="/conditions" target="_blank" className="font-normal text-primary underline">What do these mean?</a>
+          </legend>
           <div className="grid gap-2 sm:grid-cols-2">
             {CONDITIONS.map((c) => (
               <RadioCard key={c.value} name="condition" value={c.value} checked={values.condition === c.value}
@@ -248,7 +251,10 @@ export function ListingForm({
         </div>
       </section>
 
-      <p className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">{contactNote}</p>
+      <p className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">
+        {contactNote} By listing, you confirm this isn&apos;t a{" "}
+        <a href="/prohibited" target="_blank" className="font-semibold underline">prohibited item</a>.
+      </p>
 
       {state.error && <p role="alert" className="font-medium text-destructive">{state.error}</p>}
 

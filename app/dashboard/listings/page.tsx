@@ -45,9 +45,9 @@ async function Listings({ searchParams }: { searchParams: Promise<{ error?: stri
   const [{ data: listings }, allowance] = await Promise.all([
     supabase
       .from("listings")
-      .select("id, title, part_number, condition, price_cents, quantity, status, is_refrigerant, listing_photos(storage_path, sort_order)")
+      .select("id, title, part_number, condition, price_cents, quantity, status, moderation, is_refrigerant, listing_photos(storage_path, sort_order)")
       .eq("seller_id", user.id)
-      .neq("status", "removed")
+      .or("status.neq.removed,moderation.not.is.null")
       .order("created_at", { ascending: false })
       .order("sort_order", { referencedTable: "listing_photos" })
       .limit(1, { referencedTable: "listing_photos" }),
@@ -78,6 +78,7 @@ async function Listings({ searchParams }: { searchParams: Promise<{ error?: stri
           <Link href="/pricing" className="font-semibold underline">or go unlimited</Link>.
         </p>
       )}
+      {error === "moderated" && <p role="alert" className="mb-4 font-medium text-destructive">That listing is under review by Partsaur and can&apos;t be changed.</p>}
       {error === "error" && <p role="alert" className="mb-4 font-medium text-destructive">Something went wrong. Try again.</p>}
 
       {!listings?.length ? (
@@ -103,11 +104,24 @@ async function Listings({ searchParams }: { searchParams: Promise<{ error?: stri
                     <p className="text-sm text-muted-foreground">
                       {formatPrice(l.price_cents)} · Qty {l.quantity} · {conditionLabel(l.condition)}
                     </p>
-                    <span className={cn("mt-1 inline-block rounded px-2 py-0.5 text-xs font-semibold capitalize", STATUS_STYLE[l.status])}>
-                      {l.status}
-                    </span>
+                    {l.moderation ? (
+                      <span className="mt-1 inline-block rounded bg-destructive/15 px-2 py-0.5 text-xs font-semibold text-destructive">
+                        {l.moderation === "auto_hidden" ? "Hidden — under review" : "Removed by Partsaur"}
+                      </span>
+                    ) : (
+                      <span className={cn("mt-1 inline-block rounded px-2 py-0.5 text-xs font-semibold capitalize", STATUS_STYLE[l.status])}>
+                        {l.status}
+                      </span>
+                    )}
                   </div>
                 </Link>
+                {l.moderation ? (
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    {l.moderation === "auto_hidden"
+                      ? "Several people reported this listing, so it's hidden while we take a look."
+                      : "This listing broke our rules and was removed. Check your email for details."}
+                  </p>
+                ) : (
                 <div className="mt-3 grid grid-cols-3 gap-2">
                   <Button asChild variant="outline" className="h-11 px-3">
                     <Link href={`/dashboard/listings/${l.id}/edit`}>Edit</Link>
@@ -119,6 +133,7 @@ async function Listings({ searchParams }: { searchParams: Promise<{ error?: stri
                   )}
                   <StatusButton id={l.id} status="removed" label="Remove" variant="ghost" />
                 </div>
+                )}
               </li>
             );
           })}

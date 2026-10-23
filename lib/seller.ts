@@ -22,6 +22,6 @@ export async function getListingAllowance(profile: Profile, business: Business |
 
 export function contactNote(profile: Profile) {
   return profile.show_phone && profile.phone
-    ? "Signed-in buyers will see your email and phone number so they can reach you. Change this on your Account page."
-    : "Signed-in buyers will see your email so they can reach you. You can also show your phone number — turn it on in your Account page.";
+    ? "Buyers can message you on Partsaur, and call or text your phone. Change this on your Account page."
+    : "Buyers can message you on Partsaur (your email stays private). Want calls or texts too? Turn on your phone in your Account page.";
 }

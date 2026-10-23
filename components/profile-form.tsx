@@ -81,7 +81,7 @@ export function ProfileForm({
           defaultChecked={profile?.show_phone ?? false}
           className="size-5 accent-primary"
         />
-        <span>Show my phone number to signed-in buyers on my listings</span>
+        <span>Let signed-in buyers call or text me about my listings</span>
       </label>
       <label className="-mt-3 flex min-h-12 cursor-pointer items-center gap-3">
         <input

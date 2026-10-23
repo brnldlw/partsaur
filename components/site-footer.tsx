@@ -13,6 +13,9 @@ export function SiteFooter() {
         </div>
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
           <Link href="/pricing" className="py-2 hover:underline">Pricing</Link>
+          <Link href="/wanted" className="py-2 hover:underline">Wanted</Link>
+          <Link href="/conditions" className="py-2 hover:underline">Conditions</Link>
+          <Link href="/prohibited" className="py-2 hover:underline">Prohibited items</Link>
           <Link href="/terms" className="py-2 hover:underline">Terms</Link>
           <Link href="/privacy" className="py-2 hover:underline">Privacy</Link>
           <a href={`mailto:${CONTACT_EMAIL}`} className="py-2 hover:underline">

@@ -39,6 +39,8 @@ async function OwnerPanel({ wantedId, status, boostedUntil }: { wantedId: string
     .select("seller_id, match_type, seller_response, miles, notified_at")
     .eq("wanted_id", wantedId);
   const haveIt = (matches ?? []).filter((m) => m.seller_response === "have_it");
+  const { data: convs } = await supabase.from("conversations").select("id, seller_id").eq("wanted_id", wantedId);
+  const threadBySeller = new Map((convs ?? []).map((c) => [c.seller_id, c.id]));
   const pinged = (matches ?? []).filter((m) => m.notified_at).length;
 
   // Sellers who said "have it" agreed to share contact info with this requester.
@@ -68,7 +70,10 @@ async function OwnerPanel({ wantedId, status, boostedUntil }: { wantedId: string
             <li key={s.seller_id} className="rounded-lg border-2 border-primary bg-primary/10 p-3">
               <p className="font-bold">{s.name}{s.miles != null && <span className="font-normal text-muted-foreground"> · {milesText(s.miles)} away</span>}</p>
               <div className="mt-2 flex flex-wrap gap-2">
-                <Button asChild className="h-11"><a href={`mailto:${s.email}`}>Email</a></Button>
+                {threadBySeller.get(s.seller_id) && (
+                  <Button asChild className="h-11"><Link href={`/messages/${threadBySeller.get(s.seller_id)}`}>Message</Link></Button>
+                )}
+                <Button asChild variant="outline" className="h-11"><a href={`mailto:${s.email}`}>Email</a></Button>
                 {s.phone && <Button asChild variant="outline" className="h-11"><a href={`tel:${s.phone}`}>Call</a></Button>}
                 {s.phone && <Button asChild variant="outline" className="h-11"><a href={`sms:${s.phone}`}>Text</a></Button>}
               </div>

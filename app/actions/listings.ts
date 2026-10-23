@@ -23,6 +23,7 @@ async function requireSeller() {
 }
 
 function friendlyDbError(message: string) {
+  if (message.includes("MODERATED")) return "This listing is under review by Partsaur and can't be changed right now.";
   if (message.includes("LISTING_LIMIT")) {
     return "Free accounts can have 10 active listings. Mark one sold or remove one — or upgrade for unlimited.";
   }
@@ -152,7 +153,7 @@ export async function setListingStatus(formData: FormData) {
   const { error } = await supabase.from("listings").update({ status }).eq("id", id).eq("seller_id", user.id);
   updateTag(listingTag(id));
   if (error) {
-    const msg = error.message.includes("LISTING_LIMIT") ? "limit" : "error";
+    const msg = error.message.includes("LISTING_LIMIT") ? "limit" : error.message.includes("MODERATED") ? "moderated" : "error";
     redirect(`/dashboard/listings?error=${msg}`);
   }
   redirect("/dashboard/listings");
@@ -220,7 +221,7 @@ export async function importListings(rows: Record<string, unknown>[]): Promise<I
 // Contact seller (signed-in buyers; refrigerant needs EPA 608)
 // ---------------------------------------------------------------
 export type ContactResult =
-  | { ok: true; name: string; email: string; phone: string | null }
+  | { ok: true; name: string; phone: string | null }
   | { ok: false; reason: "sign_in" | "onboarding" | "not_available" | "epa608_required" | "error" };
 
 export async function getSellerContact(listingId: string): Promise<ContactResult> {
@@ -232,7 +233,7 @@ export async function getSellerContact(listingId: string): Promise<ContactResult
     return { ok: false, reason: "error" };
   }
   if (data?.error) return { ok: false, reason: data.error };
-  return { ok: true, name: data.name, email: data.email, phone: data.phone };
+  return { ok: true, name: data.name, phone: data.phone };
 }
 
 // ---------------------------------------------------------------

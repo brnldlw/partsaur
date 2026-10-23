@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { confirmHaveIt, confirmNo } from "@/app/actions/wanted";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,11 @@ export function MatchResponse({ token, answer, label }: { token: string; answer:
               {result.requester.email}
             </a>
           </p>
+          {result.conversationId && (
+            <Link href={`/messages/${result.conversationId}`} className="mt-2 inline-block font-semibold text-primary underline">
+              Message them on Partsaur
+            </Link>
+          )}
         </div>
       </div>
     );

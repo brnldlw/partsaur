@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { cacheLife, cacheTag } from "next/cache";
 import { MapPin, Package, Truck } from "lucide-react";
 import { ContactSeller } from "@/components/contact-seller";
+import { ReportButton } from "@/components/report-button";
 import { Button } from "@/components/ui/button";
 import { categoryLabel, conditionLabel } from "@/lib/categories";
 import { milesBetween } from "@/lib/geo";
@@ -76,9 +77,9 @@ async function ViewerPanel({
   searchParams,
 }: {
   listing: PublicListing;
-  searchParams: Promise<{ new?: string }>;
+  searchParams: Promise<{ new?: string; contact?: string }>;
 }) {
-  const [{ user, profile }, { new: isNew }] = await Promise.all([getAccount(), searchParams]);
+  const [{ user, profile }, { new: isNew, contact }] = await Promise.all([getAccount(), searchParams]);
   const isOwner = user?.id === listing.seller_id;
 
   let miles: number | null = null;
@@ -108,8 +109,9 @@ async function ViewerPanel({
           <Button asChild size="xl" variant="outline"><Link href="/sell/new">List another</Link></Button>
         </div>
       ) : (
-        <ContactSeller listingId={listing.id} listingTitle={listing.title} signedIn={Boolean(user)} />
+        <ContactSeller listingId={listing.id} listingTitle={listing.title} signedIn={Boolean(user)} error={contact} />
       )}
+      {!isOwner && <ReportButton listingId={listing.id} signedIn={Boolean(user)} />}
     </div>
   );
 }
@@ -119,7 +121,7 @@ async function ListingView({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ new?: string }>;
+  searchParams: Promise<{ new?: string; contact?: string }>;
 }) {
   const { id } = await params;
   const listing = await getPublicListing(id);
@@ -178,9 +180,9 @@ async function ListingView({
 
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap gap-2">
-          <span className="rounded-full bg-primary/15 px-3 py-1 text-sm font-semibold text-primary">
+          <Link href="/conditions" className="rounded-full bg-primary/15 px-3 py-1 text-sm font-semibold text-primary">
             {conditionLabel(listing.condition)}
-          </span>
+          </Link>
           <span className="rounded-full border px-3 py-1 text-sm">{categoryLabel(listing.category)}</span>
           {listing.is_refrigerant && (
             <span className="rounded-full border border-primary px-3 py-1 text-sm font-semibold">EPA 608 required</span>
@@ -232,7 +234,7 @@ export default function ListingPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ new?: string }>;
+  searchParams: Promise<{ new?: string; contact?: string }>;
 }) {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">

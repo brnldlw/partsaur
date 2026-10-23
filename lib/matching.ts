@@ -214,7 +214,7 @@ export async function runListingMatching(listingId: string) {
 }
 
 export type HaveItResult =
-  | { ok: true; requester: { name: string; email: string }; label: string; alreadySent: boolean }
+  | { ok: true; requester: { name: string; email: string }; label: string; alreadySent: boolean; conversationId: string | null }
   | { ok: false; reason: "not_found" | "closed" | "own_request" };
 
 /** Seller said "I have it" → open a conversation and email the requester the seller's contact. */
@@ -236,7 +236,13 @@ export async function respondHaveIt(token: string): Promise<HaveItResult> {
   const requesterInfo = { name: requester.name.split(" ")[0], email: requester.email };
 
   if (match.seller_response === "have_it") {
-    return { ok: true, requester: requesterInfo, label, alreadySent: true };
+    const { data: existing } = await admin
+      .from("conversations")
+      .select("id")
+      .eq("wanted_id", wanted.id)
+      .eq("seller_id", seller.id)
+      .maybeSingle();
+    return { ok: true, requester: requesterInfo, label, alreadySent: true, conversationId: existing?.id ?? null };
   }
   if (wanted.status !== "open") return { ok: false, reason: "closed" };
 
@@ -251,6 +257,13 @@ export async function respondHaveIt(token: string): Promise<HaveItResult> {
       { onConflict: "wanted_id,seller_id", ignoreDuplicates: true },
     );
   if (convError) console.error("conversation upsert failed:", convError.message);
+  const { data: conv } = await admin
+    .from("conversations")
+    .select("id")
+    .eq("wanted_id", wanted.id)
+    .eq("seller_id", seller.id)
+    .maybeSingle();
+  const threadUrl = conv ? `${SITE_URL}/messages/${conv.id}` : `${SITE_URL}/wanted/${wanted.id}`;
 
   await sendEmail({
     kind: "have_it",
@@ -266,10 +279,13 @@ export async function respondHaveIt(token: string): Promise<HaveItResult> {
       ...(seller.phone ? [`Phone: ${formatPhone(seller.phone)}`] : []),
       "Arrange payment and pickup directly. Inspect parts before you pay.",
     ],
-    buttons: [{ label: "View your request", url: `${SITE_URL}/wanted/${wanted.id}` }],
+    buttons: [
+      { label: "Message them on Partsaur", url: threadUrl },
+      { label: "View your request", url: `${SITE_URL}/wanted/${wanted.id}` },
+    ],
   });
 
-  return { ok: true, requester: requesterInfo, label, alreadySent: false };
+  return { ok: true, requester: requesterInfo, label, alreadySent: false, conversationId: conv?.id ?? null };
 }
 
 export async function respondNo(token: string) {

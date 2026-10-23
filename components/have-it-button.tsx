@@ -32,6 +32,11 @@ export function HaveItButton({ wantedId, signedIn }: { wantedId: string; signedI
               {result.requester.email}
             </a>
           </p>
+          {result.conversationId && (
+            <Link href={`/messages/${result.conversationId}`} className="mt-2 inline-block font-semibold text-primary underline">
+              Message them on Partsaur
+            </Link>
+          )}
         </div>
       </div>
     );

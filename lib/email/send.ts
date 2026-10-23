@@ -9,7 +9,15 @@ const DAILY_CAP = 95;
 const DAILY_CAP_LOW_PRIORITY = 60;
 const LOW_PRIORITY = new Set(["likely_match"]);
 
-export type EmailKind = "exact_match" | "likely_match" | "have_it" | "new_listing" | "part_alert";
+export type EmailKind =
+  | "exact_match"
+  | "likely_match"
+  | "have_it"
+  | "new_listing"
+  | "part_alert"
+  | "new_message"
+  | "listing_removed"
+  | "cert_reviewed";
 
 export type Email = {
   kind: EmailKind;
