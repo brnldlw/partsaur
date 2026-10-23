@@ -1,6 +1,8 @@
+import { revalidateTag } from "next/cache";
 import type Stripe from "stripe";
 import { ACTIVE_STATUSES, isPaidPlan } from "@/lib/billing";
 import { isFoundingPlan } from "@/lib/founding";
+import { listingTag } from "@/lib/listings";
 import { runWantedMatching } from "@/lib/matching";
 import { getStripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -9,6 +11,17 @@ import { BOOST_HOURS } from "@/lib/wanted";
 const idOf = (v: string | { id: string } | null | undefined) => (typeof v === "string" ? v : (v?.id ?? null));
 
 class RetryLater extends Error {}
+
+/** Plan changes show/hide storefronts and "Sold by" links — refresh those pages now. */
+async function refreshBusinessPages(filter: { id?: string; subscriptionId?: string }) {
+  let q = createAdminClient().from("businesses").select("id, slug");
+  q = filter.id ? q.eq("id", filter.id) : q.eq("stripe_subscription_id", filter.subscriptionId!);
+  const { data: b } = await q.maybeSingle();
+  if (!b) return;
+  if (b.slug) revalidateTag(`shop:${b.slug}`, { expire: 0 });
+  const { data: listings } = await createAdminClient().from("listings").select("id").eq("business_id", b.id).eq("status", "active").limit(500);
+  for (const l of listings ?? []) revalidateTag(listingTag(l.id), { expire: 0 });
+}
 
 function check(error: { message: string } | null, what: string) {
   if (error) {
@@ -40,6 +53,7 @@ async function onSubscriptionCheckout(session: Stripe.Checkout.Session) {
       })
       .eq("id", businessId);
     check(error, "business plan update");
+    await refreshBusinessPages({ id: businessId });
   }
 
   // Founding purchases count toward the cap (presale ones have no business yet).
@@ -78,6 +92,7 @@ async function onSubscriptionChange(sub: Stripe.Subscription) {
 
   const { error } = await admin.from("businesses").update(update).eq("stripe_subscription_id", sub.id);
   check(error, "subscription sync");
+  if (ended) await refreshBusinessPages({ subscriptionId: sub.id });
 
   if (ended) {
     // Founding price is gone once canceled (the spot isn't given back).
