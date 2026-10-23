@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { FOUNDING_PLANS, type FoundingPlan } from "@/lib/founding";
+import { PAID_PLAN_CONFIG, type PaidPlan } from "@/lib/billing";
 import { BOOST_PRICE_CENTS } from "@/lib/wanted";
 
 export function isStripeEnabled() {
@@ -14,16 +14,12 @@ export function getStripe() {
 }
 
 /**
- * Finds the monthly price for a Founding plan by its lookup key, creating the
- * product + price in Stripe the first time. No price IDs to copy around.
+ * Finds the monthly price for a plan by its lookup key, creating the product +
+ * price in Stripe the first time. No price IDs to copy around.
  */
-export async function getFoundingPriceId(stripe: Stripe, plan: FoundingPlan) {
-  const config = FOUNDING_PLANS[plan];
-  const existing = await stripe.prices.list({
-    lookup_keys: [config.lookupKey],
-    active: true,
-    limit: 1,
-  });
+export async function getPlanPriceId(stripe: Stripe, plan: PaidPlan) {
+  const config = PAID_PLAN_CONFIG[plan];
+  const existing = await stripe.prices.list({ lookup_keys: [config.lookupKey], active: true, limit: 1 });
   if (existing.data[0]) return existing.data[0].id;
 
   const price = await stripe.prices.create({
@@ -31,7 +27,7 @@ export async function getFoundingPriceId(stripe: Stripe, plan: FoundingPlan) {
     unit_amount: config.priceCents,
     recurring: { interval: "month" },
     lookup_key: config.lookupKey,
-    product_data: { name: `Partsaur ${config.name}` },
+    product_data: { name: `Partsaur ${config.name}${config.perBranch ? " (per branch)" : ""}` },
   });
   return price.id;
 }

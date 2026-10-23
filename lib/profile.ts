@@ -22,6 +22,12 @@ export type Business = {
   address: string | null;
   zip: string | null;
   plan: Plan;
+  slug: string | null;
+  stripe_customer_id: string | null;
+  subscription_status: string | null;
+  current_period_end: string | null;
+  cancel_at_period_end: boolean;
+  branches: number;
 };
 
 /** Signed-in user plus their profile and business (null if not set up yet). */
@@ -42,7 +48,7 @@ export async function getAccount() {
   if (profile?.business_id) {
     const { data } = await supabase
       .from("businesses")
-      .select("id, name, type, address, zip, plan")
+      .select("id, name, type, address, zip, plan, slug, stripe_customer_id, subscription_status, current_period_end, cancel_at_period_end, branches")
       .eq("id", profile.business_id)
       .maybeSingle<Business>();
     business = data;

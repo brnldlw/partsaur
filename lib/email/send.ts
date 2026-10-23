@@ -17,7 +17,8 @@ export type EmailKind =
   | "part_alert"
   | "new_message"
   | "listing_removed"
-  | "cert_reviewed";
+  | "cert_reviewed"
+  | "founding_open";
 
 export type Email = {
   kind: EmailKind;

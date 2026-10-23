@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { Camera, Megaphone, Search, Store, Warehouse, Wrench } from "lucide-react";
-import { FoundingOffer, FoundingOfferSkeleton } from "@/components/founding-offer";
+import { PlanOffer, PlanOfferSkeleton } from "@/components/plan-offer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { WaitlistForm } from "@/components/waitlist-form";
@@ -145,8 +145,8 @@ export default function Home() {
           </Link>
         </p>
         <div className="mt-6">
-          <Suspense fallback={<FoundingOfferSkeleton />}>
-            <FoundingOffer />
+          <Suspense fallback={<PlanOfferSkeleton />}>
+            <PlanOffer />
           </Suspense>
         </div>
       </section>

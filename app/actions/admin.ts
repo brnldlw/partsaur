@@ -142,3 +142,36 @@ export async function reviewCertification(formData: FormData) {
   }
   redirect("/admin/certs");
 }
+
+/** Tell Phase 0 "Reserve your spot" sign-ups that Founding checkout is open (40 per click). */
+export async function emailReservedSpots() {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const { data: rows } = await admin
+    .from("waitlist")
+    .select("id, email, plan_interest")
+    .not("plan_interest", "is", null)
+    .is("checkout_emailed_at", null)
+    .order("created_at")
+    .limit(40);
+
+  for (const r of rows ?? []) {
+    const name = r.plan_interest === "founding_supply" ? "Founding Supply House ($99/mo)" : "Founding Shop ($19/mo)";
+    const sent = await sendEmail({
+      kind: "founding_open",
+      to: r.email,
+      refId: r.id,
+      replyTo: CONTACT_EMAIL,
+      subject: "Your Partsaur Founding spot is ready",
+      lines: [
+        `You reserved a ${name} spot on Partsaur. Checkout is open now.`,
+        "Create your free account (or sign in) with this email, add your business, and lock in the Founding price for life.",
+        "Spots are first come, first served until they're gone.",
+      ],
+      buttons: [{ label: "Claim my spot", url: `${SITE_URL}/login?next=/pricing` }],
+    });
+    if (!sent) break; // daily cap hit; try again tomorrow
+    await admin.from("waitlist").update({ checkout_emailed_at: new Date().toISOString() }).eq("id", r.id);
+  }
+  redirect("/admin?emailed=1");
+}

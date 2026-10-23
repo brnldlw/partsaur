@@ -37,6 +37,7 @@ type PublicListing = {
   lat: number | null;
   lng: number | null;
   part_slug: string | null;
+  storefront_slug: string | null;
   photos: { storage_path: string }[];
 };
 
@@ -214,7 +215,14 @@ async function ListingView({
         </Suspense>
 
         <p className="text-sm text-muted-foreground">
-          Sold by <span className="font-semibold text-foreground">{listing.business_name ?? listing.seller_name}</span>
+          Sold by{" "}
+          {listing.storefront_slug ? (
+            <Link href={`/shop/${listing.storefront_slug}`} className="font-semibold text-primary underline-offset-4 hover:underline">
+              {listing.business_name}
+            </Link>
+          ) : (
+            <span className="font-semibold text-foreground">{listing.business_name ?? listing.seller_name}</span>
+          )}
           {listing.business_name && ` (${listing.seller_name})`}
         </p>
 

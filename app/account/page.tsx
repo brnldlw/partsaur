@@ -3,11 +3,11 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { signOut } from "@/app/actions/auth";
+import { BillingCard } from "@/components/billing-card";
 import { Epa608Upload } from "@/components/epa608-upload";
 import { ProfileForm } from "@/components/profile-form";
 import { Button } from "@/components/ui/button";
 import { isAdminEmail } from "@/lib/admin";
-import { PLAN_LABELS } from "@/lib/plans";
 import { getAccount } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
 
@@ -16,8 +16,8 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-async function Account({ searchParams }: { searchParams: Promise<{ welcome?: string }> }) {
-  const [{ user, profile, business }, { welcome }] = await Promise.all([
+async function Account({ searchParams }: { searchParams: Promise<{ welcome?: string; billing?: string }> }) {
+  const [{ user, profile, business }, { welcome, billing }] = await Promise.all([
     getAccount(),
     searchParams,
   ]);
@@ -33,39 +33,18 @@ async function Account({ searchParams }: { searchParams: Promise<{ welcome?: str
     .limit(1);
   const latestCert = certs?.[0];
 
-  const plan = business?.plan ?? "free";
-  const isFounding = plan === "founding_shop" || plan === "founding_supply";
-
   return (
     <>
       {welcome && (
         <div role="status" className="mb-6 rounded-lg border-2 border-primary bg-primary/10 p-4">
           <p className="text-lg font-bold">You&apos;re all set, {profile.display_name}.</p>
           <p className="text-muted-foreground">
-            Listing and searching for parts are coming next. We&apos;ll email you when they go live.
+            Search for a part, list one off your shelf, or post a Wanted request.
           </p>
         </div>
       )}
 
-      <section className="mb-8 rounded-xl border-2 bg-card p-5">
-        <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Plan</p>
-        <p className="mt-1 text-2xl font-black">
-          {PLAN_LABELS[plan]}
-          {isFounding && <span className="ml-2 text-base font-semibold text-primary">— price locked</span>}
-        </p>
-        {business && <p className="text-muted-foreground">{business.name}</p>}
-        {plan === "free" && (
-          <p className="mt-2 text-muted-foreground">
-            {profile.role === "tech"
-              ? "Free: search, contact sellers, post Wanted requests, and up to 10 listings."
-              : "Free: up to 10 active listings."}{" "}
-            <Link href="/pricing" className="font-semibold text-primary underline-offset-4 hover:underline">
-              See plans
-            </Link>
-          </p>
-        )}
-        <p className="mt-3 text-sm text-muted-foreground">Signed in as {user.email}</p>
-      </section>
+      <BillingCard profile={profile} business={business} email={user.email ?? ""} billing={billing} />
 
       <div className="mb-8 grid grid-cols-2 gap-2">
         <Button asChild size="xl"><Link href="/sell/new">List a part</Link></Button>
@@ -111,7 +90,7 @@ async function Account({ searchParams }: { searchParams: Promise<{ welcome?: str
 export default function AccountPage({
   searchParams,
 }: {
-  searchParams: Promise<{ welcome?: string }>;
+  searchParams: Promise<{ welcome?: string; billing?: string }>;
 }) {
   return (
     <div className="mx-auto max-w-xl px-4 py-12">

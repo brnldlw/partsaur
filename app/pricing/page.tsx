@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { FoundingOffer, FoundingOfferSkeleton } from "@/components/founding-offer";
+import { PlanOffer, PlanOfferSkeleton } from "@/components/plan-offer";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -40,7 +40,7 @@ const TIERS = [
     note: "First 10 supply houses",
     price: "$99/mo",
     priceNote: "locked",
-    gets: "Everything in Shop, plus multi-location, dead-stock feed, regional reach, analytics",
+    gets: "Everything in Shop, plus (coming soon) multi-location, dead-stock feed, regional reach, analytics",
     highlight: true,
   },
   {
@@ -58,9 +58,25 @@ const TIERS = [
   },
 ];
 
-export default function PricingPage() {
+async function Banner({ searchParams }: { searchParams: Promise<{ soldout?: string; error?: string }> }) {
+  const { soldout, error } = await searchParams;
+  if (soldout) {
+    return (
+      <p role="alert" className="mb-6 rounded-lg border-2 border-primary bg-primary/10 p-3 font-semibold">
+        The last Founding spot was just taken. The regular plan below has the same features.
+      </p>
+    );
+  }
+  if (error) {
+    return <p role="alert" className="mb-6 rounded-lg border-2 border-destructive p-3 font-semibold">Checkout didn&apos;t start. Please try again.</p>;
+  }
+  return null;
+}
+
+export default function PricingPage({ searchParams }: { searchParams: Promise<{ soldout?: string; error?: string }> }) {
   return (
     <div className="mx-auto max-w-5xl px-4 py-12">
+      <Suspense><Banner searchParams={searchParams} /></Suspense>
       <h1 className="text-3xl font-black sm:text-5xl">Pricing</h1>
       <p className="mt-3 max-w-2xl text-lg text-muted-foreground">
         No surprises. Finding parts is free. Selling a few parts is free. Shops and supply houses
@@ -97,7 +113,8 @@ export default function PricingPage() {
 
       <p className="mt-4 text-sm text-muted-foreground">
         For now, buyers and sellers arrange pickup and payment directly. Partsaur doesn&apos;t
-        take a cut of your sale.
+        take a cut of your sale. Cancel anytime from your Account page — Founding prices stay locked
+        as long as you stay subscribed.
       </p>
 
       <section className="mt-12">
@@ -106,8 +123,8 @@ export default function PricingPage() {
           When the Founding spots are gone, they&apos;re gone. The price stays locked as long as
           you stay subscribed.
         </p>
-        <Suspense fallback={<FoundingOfferSkeleton />}>
-          <FoundingOffer />
+        <Suspense fallback={<PlanOfferSkeleton />}>
+          <PlanOffer />
         </Suspense>
       </section>
 

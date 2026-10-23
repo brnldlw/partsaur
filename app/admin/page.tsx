@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { emailReservedSpots } from "@/app/actions/admin";
 import { AdminFallback, AdminShell } from "@/components/admin-shell";
+import { Button } from "@/components/ui/button";
 import { requireAdmin } from "@/lib/admin";
 import { getSpotsLeft } from "@/lib/founding-spots";
+import { isStripeEnabled } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const metadata: Metadata = { title: "Admin", robots: { index: false } };
@@ -26,6 +29,9 @@ async function Overview() {
     getSpotsLeft(),
     n(admin.from("conversations").select("id", head)),
   ]);
+  const reservedWaiting = await n(
+    admin.from("waitlist").select("id", head).not("plan_interest", "is", null).is("checkout_emailed_at", null),
+  );
 
   const tiles: { label: string; value: string | number; href?: string; alert?: boolean }[] = [
     { label: "Open reports", value: reportsOpen, href: "/admin/reports", alert: reportsOpen > 0 },
@@ -42,6 +48,15 @@ async function Overview() {
   ];
 
   return (
+    <>
+    {reservedWaiting > 0 && isStripeEnabled() && (
+      <form action={emailReservedSpots} className="mb-6 flex flex-col gap-2 rounded-xl border-2 border-primary bg-primary/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <p className="font-semibold">
+          {reservedWaiting} {reservedWaiting === 1 ? "person" : "people"} reserved a Founding spot before checkout opened.
+        </p>
+        <Button type="submit" size="xl">Email them (up to 40)</Button>
+      </form>
+    )}
     <ul className="grid grid-cols-2 gap-3 md:grid-cols-4">
       {tiles.map((t) => {
         const inner = (
@@ -53,6 +68,7 @@ async function Overview() {
         return <li key={t.label}>{t.href ? <Link href={t.href}>{inner}</Link> : inner}</li>;
       })}
     </ul>
+    </>
   );
 }
 
