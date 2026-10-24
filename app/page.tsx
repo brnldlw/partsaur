@@ -33,7 +33,7 @@ const FEATURES = [
   {
     icon: Camera,
     title: "Photo-to-listing",
-    body: "Snap the box label or nameplate. Partsaur reads the brand, part number, and specs for you.",
+    body: "Snap the box label or nameplate — Partsaur reads the brand, part number, and ratings for you.",
   },
   {
     icon: Megaphone,
@@ -72,8 +72,8 @@ export default function Home() {
           <span className="text-primary">Sell the dead stock.</span>
         </h1>
         <p className="mt-5 max-w-2xl text-lg text-muted-foreground sm:text-xl">
-          Unit&apos;s down. The part&apos;s 3 weeks out from the supply house. Someone nearby has
-          it sitting on a shelf. Partsaur connects you.
+          Job&apos;s stalled and the part is 3 weeks out. Someone nearby has it sitting on a shelf.
+          Partsaur connects you — HVAC/R, electrical, plumbing, and more.
         </p>
         <form action="/search" className="mt-8 flex max-w-2xl gap-2">
           <Input
@@ -117,7 +117,7 @@ export default function Home() {
 
       {/* How it works */}
       <section className="mx-auto max-w-5xl px-4 py-10">
-        <h2 className="text-2xl font-black sm:text-3xl">Built for the mechanical room</h2>
+        <h2 className="text-2xl font-black sm:text-3xl">Built for the job site</h2>
         <div className="mt-6 grid gap-6 md:grid-cols-3">
           {FEATURES.map(({ icon: Icon, title, body }) => (
             <div key={title} className="flex gap-4">
@@ -153,10 +153,10 @@ export default function Home() {
       {/* Waitlist */}
       <section id="waitlist" className="mx-auto max-w-2xl scroll-mt-20 px-4 py-10">
         <div className="rounded-2xl border-2 bg-card p-5 sm:p-8">
-          <h2 className="text-2xl font-black sm:text-3xl">Get in early</h2>
+          <h2 className="text-2xl font-black sm:text-3xl">Not ready to sign up?</h2>
           <p className="mb-6 mt-2 text-muted-foreground">
-            We&apos;re opening HVAC/R first. Tell us where you are and we&apos;ll let you know
-            when Partsaur goes live near you.
+            Tell us your trade and zip, and we&apos;ll let you know when parts start showing up
+            near you.
           </p>
           <WaitlistForm />
         </div>

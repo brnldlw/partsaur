@@ -30,7 +30,7 @@ export default function OpengraphImage() {
           Sell the dead stock.
         </div>
         <div style={{ display: "flex", marginTop: 40, fontSize: 32, color: "#a1a1aa" }}>
-          HVAC/R overstock, dead stock &amp; obsolete parts — near you.
+          Overstock, dead stock &amp; obsolete parts — HVAC/R, electrical, plumbing &amp; more.
         </div>
       </div>
     ),

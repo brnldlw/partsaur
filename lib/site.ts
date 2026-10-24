@@ -1,7 +1,7 @@
 export const SITE_NAME = "Partsaur";
 export const SITE_TAGLINE = "Find the part. Sell the dead stock.";
 export const SITE_DESCRIPTION =
-  "Unit's down and the part is 3 weeks out? Someone nearby has it on a shelf. Partsaur is the marketplace for HVAC/R overstock, dead stock, and obsolete parts.";
+  "Job's down and the part is weeks out? Someone nearby has it on a shelf. Partsaur is the marketplace for overstock, dead stock, and obsolete parts — HVAC/R, electrical, plumbing, and more.";
 export const CONTACT_EMAIL = "brian@stockedtruck.com";
 
 export const SITE_URL =

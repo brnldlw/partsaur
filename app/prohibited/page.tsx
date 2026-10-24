@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 const PROHIBITED = [
   { name: "Recalled items", detail: "Anything under a manufacturer or CPSC recall, unless it's been repaired under that recall and you say so." },
   { name: "Reclaimed or unverified refrigerant", detail: "Only virgin refrigerant in sealed, original factory cylinders. No recovered, reclaimed, mixed, or unlabeled refrigerant, and no partially used cylinders." },
+  { name: "Full compressed-gas cylinders", detail: "Welding and shielding gas cylinders (argon, CO2, oxygen, acetylene, mixes) may only be listed empty or for exchange. No full cylinders, and no cylinders past their hydro-test date sold as usable." },
   { name: "Stolen goods", detail: "If you can't say where it came from, don't list it. We cooperate with law enforcement." },
   { name: "Counterfeit or relabeled parts", detail: "Knock-offs sold as a name brand, or parts with altered labels or part numbers." },
   { name: "Hazardous waste", detail: "Contaminated oil, failed compressors still holding refrigerant, PCB-containing capacitors, or anything that needs hazmat disposal." },

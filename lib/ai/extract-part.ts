@@ -42,6 +42,12 @@ Extract what is actually printed or clearly visible. Rules:
 - If there are several numbers, prefer the manufacturer part/model number over serial numbers, UPCs, or date codes.
 - Specs: list the ratings printed on the label that matter for that trade (see "Read from labels").
 - Refrigerant is only for the refrigerant itself (cylinders/jugs), not parts rated for a refrigerant.
+- When trades overlap, pick by where the part is used:
+  commercial kitchen / laundry equipment → Appliance Repair; building heating, cooling and refrigeration systems → HVAC/R;
+  generators, their controllers, engines and load banks → Generators & Backup Power; building power distribution → Electrical;
+  truck, trailer and diesel-engine parts → Diesel & Trucking; fire sprinkler and fire alarm → Fire Protection & Sprinkler;
+  BAS controllers, access control, cameras, network/low voltage → Building Automation & Low Voltage.
+- Welding/shielding gas cylinders (argon, CO2, oxygen, acetylene, mixes) → welding / gas_cylinders.
 - Write the description for another tech: what the part is, what it fits, and key ratings. No marketing language.
 - If the photo isn't a part at all, set confidence to low, leave brand and part_number null, and say so in the description.
 
