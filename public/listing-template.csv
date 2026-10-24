@@ -1,4 +1,5 @@
-title,brand,part_number,description,category,condition,quantity,price,pickup,ships,zip
-Copeland Scroll Compressor 3 Ton,Copeland,ZP36K5E-PFV-830,"R-410A scroll, 208/230V 1ph. Never installed.",Compressors,New in box,1,650,yes,no,
-Mars Run Capacitor 45/5 MFD,Mars,12759,"440V dual run cap, round",Capacitors,New in box,6,18,yes,yes,
-Sporlan TXV,Sporlan,BBIZE-4-GA,"R-410A, 4 ton, 3/8 x 5/8 ODF",Valves,New old stock,2,,yes,no,
+trade,title,brand,part_number,description,category,condition,quantity,price,pickup,ships,zip
+HVAC/R,Copeland Scroll Compressor 3 Ton,Copeland,ZP36K5E-PFV-830,"R-410A scroll, 208/230V 1ph. Never installed.",Compressors,New in box,1,650,yes,no,
+HVAC/R,Mars Run Capacitor 45/5 MFD,Mars,12759,"440V dual run cap, round",Capacitors,New in box,6,18,yes,yes,
+Electrical,Square D 20A 1-Pole Breaker,Square D,QO120,"QO plug-on, 10kAIC",Breakers & Panels,New in box,12,9,yes,yes,
+Plumbing,Watts 1/2 in. Backflow Preventer,Watts,LF009M2-QT,"Reduced pressure zone, lead free",Backflow Preventers,New old stock,2,,yes,no,

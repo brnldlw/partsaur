@@ -58,12 +58,11 @@ export default function Home() {
               key={t.value}
               className={cn(
                 "rounded-full border px-3 py-1 text-sm",
-                t.status === "Launching"
-                  ? "border-primary bg-primary/10 font-semibold text-primary"
-                  : "text-muted-foreground",
+                t.status === "live" ? "border-primary bg-primary/10 font-semibold text-primary" : "text-muted-foreground",
               )}
             >
-              {t.label} · {t.status}
+              {t.label}
+              {t.status === "coming_soon" && " · Coming Soon"}
             </span>
           ))}
         </div>

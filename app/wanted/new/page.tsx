@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { WantedForm } from "@/components/wanted-form";
 import { getAccount } from "@/lib/profile";
+import { DEFAULT_TRADE, getTrade } from "@/lib/trades";
 
 export const metadata: Metadata = {
   title: "Post a Wanted request",
@@ -14,7 +15,8 @@ async function NewWanted({ searchParams }: { searchParams: Promise<{ pn?: string
   const next = `/wanted/new${pn ? `?pn=${encodeURIComponent(pn)}${brand ? `&brand=${encodeURIComponent(brand)}` : ""}` : ""}`;
   if (!user) redirect(`/login?next=${encodeURIComponent(next)}`);
   if (!profile) redirect("/onboarding");
-  return <WantedForm defaults={{ part_number: pn?.slice(0, 80), brand: brand?.slice(0, 80), zip: profile.zip }} />;
+  const trade = getTrade(profile.trade)?.status === "live" ? profile.trade : DEFAULT_TRADE;
+  return <WantedForm defaults={{ part_number: pn?.slice(0, 80), brand: brand?.slice(0, 80), zip: profile.zip, trade }} />;
 }
 
 export default function NewWantedPage({ searchParams }: { searchParams: Promise<{ pn?: string; brand?: string }> }) {

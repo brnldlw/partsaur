@@ -3,6 +3,7 @@ import { MapPin } from "lucide-react";
 import { conditionLabel } from "@/lib/categories";
 import { formatPrice, photoUrl } from "@/lib/listings";
 import type { SearchHit } from "@/lib/search";
+import { getCategory } from "@/lib/trades";
 
 export function ListingCard({ hit }: { hit: SearchHit }) {
   return (
@@ -28,7 +29,11 @@ export function ListingCard({ hit }: { hit: SearchHit }) {
             <MapPin className="size-3.5" />
             {hit.miles != null ? `${Math.max(1, Math.round(hit.miles))} mi` : hit.zip}
           </span>
-          {hit.ships && <span>Ships</span>}
+          {getCategory(hit.trade, hit.category)?.freight ? (
+            <span className="font-semibold text-foreground">{hit.ships ? "Pickup / Freight" : "Pickup only"}</span>
+          ) : (
+            hit.ships && <span>Ships</span>
+          )}
           {hit.match_rank === 0 && <span className="font-semibold text-primary">Exact part #</span>}
         </p>
       </div>

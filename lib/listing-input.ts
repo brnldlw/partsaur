@@ -1,11 +1,13 @@
-import { CATEGORIES, CONDITIONS, type Category, type Condition } from "@/lib/categories";
+import { CONDITIONS, type Condition } from "@/lib/categories";
+import { categoriesFor, getTrade, LIVE_TRADES } from "@/lib/trades";
 
 export type ListingInput = {
   title: string;
   brand: string | null;
   part_number: string | null;
   description: string | null;
-  category: Category;
+  trade: string;
+  category: string;
   condition: Condition;
   quantity: number;
   price_cents: number | null;
@@ -60,7 +62,10 @@ export function parsePriceCents(v: unknown): number | null | Error {
 }
 
 /** Shared by the listing form (server) and CSV import (browser preview + server). */
-export function parseListingInput(raw: Record<string, unknown>, defaultZip?: string): ParseResult {
+export function parseListingInput(
+  raw: Record<string, unknown>,
+  defaults: { zip?: string; trade?: string } = {},
+): ParseResult {
   const fail = (error: string): ParseResult => ({ ok: false, error });
 
   const title = str(raw.title);
@@ -74,8 +79,17 @@ export function parseListingInput(raw: Record<string, unknown>, defaultZip?: str
   const description = optional(raw.description, 4000, "Description");
   if (description instanceof Error) return fail(description.message);
 
-  const category = matchOption(raw.category, CATEGORIES);
-  if (!category) return fail(raw.category ? `Unknown category "${str(raw.category)}".` : "Pick a category.");
+  // Trade by code ("hvacr") or name ("HVAC/R", "Plumbing"); blank = the seller's trade.
+  const tradeRaw = str(raw.trade).toLowerCase();
+  const trade = tradeRaw
+    ? LIVE_TRADES.find((t) => t.value === tradeRaw || t.label.toLowerCase() === tradeRaw)?.value
+    : defaults.trade;
+  if (!trade || !getTrade(trade)) return fail(tradeRaw ? `Unknown trade "${str(raw.trade)}".` : "Pick a trade.");
+
+  const category = matchOption(raw.category, categoriesFor(trade));
+  if (!category) {
+    return fail(raw.category ? `"${str(raw.category)}" isn't in the ${getTrade(trade)!.label} category list.` : "Pick a category.");
+  }
   const condition = matchOption(raw.condition, CONDITIONS);
   if (!condition) return fail(raw.condition ? `Unknown condition "${str(raw.condition)}".` : "Pick a condition.");
 
@@ -94,7 +108,7 @@ export function parseListingInput(raw: Record<string, unknown>, defaultZip?: str
   if (ships instanceof Error) return fail(ships.message);
   if (!pickup && !ships) return fail("Choose pickup, shipping, or both.");
 
-  const zip = str(raw.zip) || defaultZip || "";
+  const zip = str(raw.zip) || defaults.zip || "";
   if (!/^\d{5}$/.test(zip)) return fail("Zip code should be 5 digits.");
 
   return {
@@ -104,6 +118,7 @@ export function parseListingInput(raw: Record<string, unknown>, defaultZip?: str
       brand,
       part_number: partNumber,
       description,
+      trade,
       category,
       condition,
       quantity,
@@ -116,6 +131,7 @@ export function parseListingInput(raw: Record<string, unknown>, defaultZip?: str
 }
 
 export const CSV_COLUMNS = [
+  "trade",
   "title",
   "brand",
   "part_number",

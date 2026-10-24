@@ -10,11 +10,7 @@ export const SITE_URL =
     ? `https://${process.env.VERCEL_URL}`
     : "http://localhost:3000");
 
-export const TRADES = [
-  { value: "hvacr", label: "HVAC/R", status: "Launching" },
-  { value: "electrical", label: "Electrical", status: "Coming Soon" },
-  { value: "plumbing", label: "Plumbing", status: "Coming Soon" },
-] as const;
+export { TRADE_LIST as TRADES } from "@/lib/trades";
 
 export const ROLES = [
   { value: "tech", label: "Tech" },
@@ -22,5 +18,5 @@ export const ROLES = [
   { value: "supply_house", label: "Supply House" },
 ] as const;
 
-export type Trade = (typeof TRADES)[number]["value"];
+export type Trade = string;
 export type Role = (typeof ROLES)[number]["value"];

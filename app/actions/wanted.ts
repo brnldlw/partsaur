@@ -3,7 +3,7 @@
 import { after } from "next/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { CATEGORIES } from "@/lib/categories";
+import { DEFAULT_TRADE, getTrade, isCategoryOf } from "@/lib/trades";
 import { haveItFromPage, respondHaveIt, respondNo, runWantedMatching, type HaveItResult } from "@/lib/matching";
 import { getAccount } from "@/lib/profile";
 import { SITE_URL } from "@/lib/site";
@@ -23,6 +23,8 @@ export async function createWanted(_prev: WantedFormState, formData: FormData): 
   const partNumber = get("part_number");
   const brand = get("brand");
   const description = get("description");
+  const tradeIn = get("trade");
+  const trade = getTrade(tradeIn)?.status === "live" ? tradeIn : getTrade(profile.trade)?.status === "live" ? profile.trade : DEFAULT_TRADE;
   const category = get("category");
   const neededBy = get("needed_by");
   const radius = Number(get("radius_miles") || 150);
@@ -32,7 +34,7 @@ export async function createWanted(_prev: WantedFormState, formData: FormData): 
   if (partNumber.length > 80) return { ok: false, error: "Part number is too long." };
   if (brand.length > 80) return { ok: false, error: "Brand is too long." };
   if (description.length > 1000) return { ok: false, error: "Description is too long (max 1000 characters)." };
-  if (category && !CATEGORIES.some((c) => c.value === category)) return { ok: false, error: "Pick a valid category." };
+  if (category && !isCategoryOf(trade, category)) return { ok: false, error: "Pick a category from that trade." };
   if (!(WANTED_RADII as readonly number[]).includes(radius)) return { ok: false, error: "Pick a distance." };
   if (!/^\d{5}$/.test(zip)) return { ok: false, error: "Zip code should be 5 digits." };
   if (neededBy) {
@@ -54,7 +56,7 @@ export async function createWanted(_prev: WantedFormState, formData: FormData): 
       brand: brand || null,
       description: description || null,
       category: category || null,
-      trade: profile.trade,
+      trade,
       needed_by: neededBy || null,
       radius_miles: radius,
       zip,

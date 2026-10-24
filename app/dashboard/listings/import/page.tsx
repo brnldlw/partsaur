@@ -29,7 +29,7 @@ async function Import() {
       </div>
     );
   }
-  return <CsvImport defaultZip={business?.zip ?? profile.zip} />;
+  return <CsvImport defaultZip={business?.zip ?? profile.zip} defaultTrade={profile.trade} />;
 }
 
 export default function ImportPage() {

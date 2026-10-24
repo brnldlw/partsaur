@@ -34,9 +34,7 @@ export function WaitlistForm({ plan }: { plan?: FoundingPlan }) {
           <p className="text-muted-foreground">
             {plan
               ? `We'll email you when ${FOUNDING_PLANS[plan].name} checkout opens. Your spot is held at the Founding price.`
-              : trade === "hvacr"
-                ? "We'll email you the day Partsaur opens in your area."
-                : "We'll email you when your trade opens up."}
+              : "We'll email you when Partsaur opens in your area."}
           </p>
         </div>
       </div>
@@ -55,7 +53,7 @@ export function WaitlistForm({ plan }: { plan?: FoundingPlan }) {
         <>
           <fieldset className="flex flex-col gap-2">
             <legend className="mb-2 text-sm font-semibold">Your trade</legend>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {TRADES.map((t) => (
                 <RadioCard
                   key={t.value}
@@ -64,8 +62,7 @@ export function WaitlistForm({ plan }: { plan?: FoundingPlan }) {
                   checked={trade === t.value}
                   onSelect={() => setTrade(t.value)}
                   label={t.label}
-                  sublabel={t.status}
-                  highlightSublabel={t.status === "Launching"}
+                  sublabel={t.status === "coming_soon" ? "Coming Soon" : undefined}
                 />
               ))}
             </div>

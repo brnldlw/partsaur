@@ -21,7 +21,7 @@ async function EditListing({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient();
   const { data: listing } = await supabase
     .from("listings")
-    .select("id, title, brand, part_number, description, category, condition, quantity, price_cents, pickup, ships, zip, listing_photos(storage_path, sort_order)")
+    .select("id, title, brand, part_number, description, trade, category, condition, quantity, price_cents, pickup, ships, zip, listing_photos(storage_path, sort_order)")
     .eq("id", id)
     .eq("seller_id", user.id)
     .order("sort_order", { referencedTable: "listing_photos" })
@@ -39,6 +39,7 @@ async function EditListing({ params }: { params: Promise<{ id: string }> }) {
         brand: listing.brand ?? "",
         part_number: listing.part_number ?? "",
         description: listing.description ?? "",
+        trade: listing.trade,
         category: listing.category,
         condition: listing.condition,
         quantity: String(listing.quantity),

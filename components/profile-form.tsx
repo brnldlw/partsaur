@@ -95,7 +95,7 @@ export function ProfileForm({
 
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-2 font-semibold">Your trade</legend>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {TRADES.map((t) => (
             <RadioCard
               key={t.value}
@@ -104,15 +104,13 @@ export function ProfileForm({
               checked={trade === t.value}
               onSelect={() => setTrade(t.value)}
               label={t.label}
-              sublabel={t.status}
-              highlightSublabel={t.status === "Launching"}
+              sublabel={t.status === "coming_soon" ? "Coming Soon" : undefined}
             />
           ))}
         </div>
-        {trade !== "hvacr" && (
+        {TRADES.find((t) => t.value === trade)?.status === "coming_soon" && (
           <p className="text-sm text-muted-foreground">
-            We&apos;re opening HVAC/R first. Your account is ready — we&apos;ll email you when your
-            trade opens up.
+            This trade opens soon. Your account is ready — we&apos;ll email you when it does.
           </p>
         )}
       </fieldset>

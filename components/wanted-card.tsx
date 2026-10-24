@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Clock, MapPin, Zap } from "lucide-react";
 import { categoryLabel } from "@/lib/categories";
+import { tradeLabel } from "@/lib/trades";
 import { milesText, neededByText, wantedLabel } from "@/lib/wanted";
 import type { WantedHit } from "@/lib/wanted-search";
 import { cn } from "@/lib/utils";
@@ -23,7 +24,7 @@ export function WantedCard({ hit }: { hit: WantedHit }) {
       <p className="flex flex-wrap items-center gap-x-3 text-sm text-muted-foreground">
         <span className="flex items-center gap-1 font-semibold text-foreground"><Clock className="size-3.5" />Needed {neededByText(hit.needed_by)}</span>
         <span className="flex items-center gap-1"><MapPin className="size-3.5" />{hit.miles != null ? `${milesText(hit.miles)} away` : `Near ${hit.zip}`}</span>
-        {hit.category && <span>{categoryLabel(hit.category)}</span>}
+        <span>{tradeLabel(hit.trade)}{hit.category && ` · ${categoryLabel(hit.category, hit.trade)}`}</span>
         <span>{hit.requester_name}</span>
       </p>
     </Link>

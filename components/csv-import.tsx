@@ -9,11 +9,12 @@ import { Button } from "@/components/ui/button";
 import { categoryLabel, conditionLabel } from "@/lib/categories";
 import { CSV_COLUMNS, MAX_IMPORT_ROWS, parseListingInput } from "@/lib/listing-input";
 import { formatPrice } from "@/lib/listings";
+import { tradeLabel } from "@/lib/trades";
 import { cn } from "@/lib/utils";
 
 type Row = { raw: Record<string, string>; error: string | null };
 
-export function CsvImport({ defaultZip }: { defaultZip: string }) {
+export function CsvImport({ defaultZip, defaultTrade }: { defaultZip: string; defaultTrade: string }) {
   const [rows, setRows] = useState<Row[] | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -41,7 +42,7 @@ export function CsvImport({ defaultZip }: { defaultZip: string }) {
         }
         setRows(
           data.map((raw) => {
-            const parsed = parseListingInput(raw, defaultZip);
+            const parsed = parseListingInput(raw, { zip: defaultZip, trade: defaultTrade });
             return { raw, error: parsed.ok ? null : parsed.error };
           }),
         );
@@ -84,7 +85,10 @@ export function CsvImport({ defaultZip }: { defaultZip: string }) {
           </a>{" "}
           and open it in Excel or Google Sheets.
         </li>
-        <li>One part per row. Leave price blank for &quot;Make offer&quot;. Zip defaults to {defaultZip}.</li>
+        <li>
+          One part per row. Leave price blank for &quot;Make offer&quot;. Blank trade = {tradeLabel(defaultTrade)};
+          blank zip = {defaultZip}.
+        </li>
         <li>Save as CSV and upload it here.</li>
       </ol>
       <p className="text-sm text-muted-foreground">Columns: {CSV_COLUMNS.join(", ")}</p>
@@ -117,7 +121,7 @@ export function CsvImport({ defaultZip }: { defaultZip: string }) {
               </thead>
               <tbody>
                 {rows.map((r, i) => {
-                  const parsed = parseListingInput(r.raw, defaultZip);
+                  const parsed = parseListingInput(r.raw, { zip: defaultZip, trade: defaultTrade });
                   return (
                     <tr key={i} className={cn("border-t align-top", r.error && "bg-destructive/10")}>
                       <td className="p-2">{i + 1}</td>
@@ -126,7 +130,7 @@ export function CsvImport({ defaultZip }: { defaultZip: string }) {
                         {r.error && <p className="font-semibold text-destructive">{r.error}</p>}
                       </td>
                       <td className="p-2 font-mono">{r.raw.part_number}</td>
-                      <td className="p-2">{parsed.ok ? categoryLabel(parsed.data.category) : r.raw.category}</td>
+                      <td className="p-2">{parsed.ok ? `${tradeLabel(parsed.data.trade)} · ${categoryLabel(parsed.data.category, parsed.data.trade)}` : r.raw.category}</td>
                       <td className="p-2">{parsed.ok ? conditionLabel(parsed.data.condition) : r.raw.condition}</td>
                       <td className="p-2">{r.raw.quantity || 1}</td>
                       <td className="p-2">{parsed.ok ? formatPrice(parsed.data.price_cents) : r.raw.price}</td>

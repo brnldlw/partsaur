@@ -9,13 +9,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { ExtractedPart } from "@/lib/ai/extract-part";
-import { CATEGORIES, CONDITIONS, MAX_PHOTOS } from "@/lib/categories";
+import { CONDITIONS, MAX_PHOTOS } from "@/lib/categories";
+import { categoriesFor, getCategory, isCategoryOf, LIVE_TRADES } from "@/lib/trades";
+import { cn } from "@/lib/utils";
 
 export type ListingFormValues = {
   title: string;
   brand: string;
   part_number: string;
   description: string;
+  trade: string;
   category: string;
   condition: string;
   quantity: string;
@@ -35,20 +38,9 @@ const selectClass =
   "flex h-12 w-full rounded-md border border-input bg-background px-3 text-base shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring";
 
 function specsToText(specs: ExtractedPart["specs"]) {
-  const labels: [keyof ExtractedPart["specs"], string][] = [
-    ["voltage", "Voltage"],
-    ["phase", "Phase"],
-    ["hz", "Hz"],
-    ["amps", "Amps"],
-    ["hp", "HP"],
-    ["rpm", "RPM"],
-    ["refrigerant", "Refrigerant"],
-    ["capacity", "Capacity"],
-    ["other", "Other"],
-  ];
-  return labels
-    .filter(([k]) => specs[k])
-    .map(([k, label]) => `${label}: ${specs[k]}`)
+  return specs
+    .filter((x) => x.label && x.value)
+    .map((x) => `${x.label}: ${x.value}`)
     .join(" · ");
 }
 
@@ -71,6 +63,7 @@ export function ListingForm({
   const [ai, setAi] = useState<AiState>({ status: "idle" });
   const [aiExtracted, setAiExtracted] = useState<ExtractedPart | null>(null);
   const isEdit = Boolean(listingId);
+  const category = getCategory(values.trade, values.category);
 
   const set = <K extends keyof ListingFormValues>(key: K, value: ListingFormValues[K]) =>
     setValues((v) => ({ ...v, [key]: value }));
@@ -91,7 +84,8 @@ export function ListingForm({
       brand: d.brand ?? v.brand,
       part_number: d.part_number ?? v.part_number,
       description: [d.description, specs].filter(Boolean).join("\n\n") || v.description,
-      category: d.is_refrigerant ? "refrigerant" : d.category,
+      trade: d.trade,
+      category: d.category,
       condition: d.condition_guess ?? v.condition,
     }));
     setAi({ status: "done", confidence: d.confidence });
@@ -175,15 +169,36 @@ export function ListingForm({
           </div>
         </div>
 
+        <fieldset className="flex flex-col gap-2">
+          <legend className="mb-2 font-semibold">Trade</legend>
+          <input type="hidden" name="trade" value={values.trade} />
+          <div className="flex flex-wrap gap-2">
+            {LIVE_TRADES.map((t) => (
+              <button key={t.value} type="button" aria-pressed={values.trade === t.value}
+                onClick={() => setValues((v) => ({ ...v, trade: t.value, category: isCategoryOf(t.value, v.category) ? v.category : "" }))}
+                className={cn("flex h-11 items-center rounded-full border-2 px-4 text-sm font-semibold",
+                  values.trade === t.value ? "border-primary bg-primary/10 text-primary" : "hover:border-foreground/30")}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+
         <div className="flex flex-col gap-2">
           <Label htmlFor="category" className="font-semibold">Category</Label>
           <select id="category" name="category" value={values.category}
             onChange={(e) => set("category", e.target.value)} required className={selectClass}>
             <option value="" disabled>Pick one…</option>
-            {CATEGORIES.map((c) => (
+            {categoriesFor(values.trade).map((c) => (
               <option key={c.value} value={c.value}>{c.label}</option>
             ))}
           </select>
+          {category?.confirm && (
+            <label className="flex cursor-pointer items-start gap-3 rounded-lg border-2 border-primary bg-primary/10 p-3">
+              <input type="checkbox" name="category_confirm" required className="mt-0.5 size-5 shrink-0 accent-primary" />
+              <span className="font-semibold">{category.confirm.label}</span>
+            </label>
+          )}
           {values.category === "refrigerant" && (
             <p className="text-sm text-muted-foreground">
               Only buyers with an approved EPA 608 cert can contact you about refrigerant. No
@@ -239,10 +254,18 @@ export function ListingForm({
               className="flex min-h-14 cursor-pointer items-center gap-3 rounded-lg border-2 px-3 has-[:checked]:border-primary has-[:checked]:bg-primary/10">
               <input type="checkbox" name={key} checked={values[key]}
                 onChange={(e) => set(key, e.target.checked)} className="size-5 accent-primary" />
-              <span className="font-semibold">{key === "pickup" ? "Local pickup" : "Will ship"}</span>
+              <span className="font-semibold">
+                {key === "pickup" ? "Local pickup" : category?.freight ? "Will ship (freight)" : "Will ship"}
+              </span>
             </label>
           ))}
         </div>
+        {category?.freight && (
+          <p className="-mt-2 text-sm text-muted-foreground">
+            Big item — buyers will see <span className="font-semibold text-foreground">{values.ships ? "Pickup or freight" : "Pickup only"}</span>.
+            If you ship it, it goes by freight; say in the description who arranges it and roughly what it weighs.
+          </p>
+        )}
 
         <div className="flex flex-col gap-2">
           <Label htmlFor="zip" className="font-semibold">Where is it? (zip)</Label>

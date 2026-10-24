@@ -7,6 +7,7 @@ import { setWantedStatus, startBoostCheckout } from "@/app/actions/wanted";
 import { HaveItButton } from "@/components/have-it-button";
 import { Button } from "@/components/ui/button";
 import { categoryLabel } from "@/lib/categories";
+import { tradeLabel } from "@/lib/trades";
 import { getAccount } from "@/lib/profile";
 import { resolveLocation } from "@/lib/search";
 import { isStripeEnabled } from "@/lib/stripe";
@@ -133,7 +134,7 @@ async function WantedView({ params, searchParams }: Params) {
   const { data: own } = user
     ? await supabase
         .from("wanted_requests")
-        .select("id, requester_id, part_number, brand, description, category, needed_by, zip, status, boosted_until, radius_miles")
+        .select("id, requester_id, part_number, brand, description, trade, category, needed_by, zip, status, boosted_until, radius_miles")
         .eq("id", id)
         .eq("requester_id", user.id)
         .maybeSingle()
@@ -164,7 +165,7 @@ async function WantedView({ params, searchParams }: Params) {
 
       <div>
         <p className="flex flex-wrap items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          Wanted {w.category && <span>· {categoryLabel(w.category)}</span>}
+          Wanted · {tradeLabel(w.trade)} {w.category && <span>· {categoryLabel(w.category, w.trade)}</span>}
           {isBoosted && <span className="flex items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground"><Zap className="size-3" />Urgent</span>}
         </p>
         <h1 className="mt-1 text-3xl font-black leading-tight sm:text-4xl">

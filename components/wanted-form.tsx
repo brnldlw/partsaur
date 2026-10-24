@@ -5,7 +5,7 @@ import { createWanted, type WantedFormState } from "@/app/actions/wanted";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CATEGORIES } from "@/lib/categories";
+import { categoriesFor, isCategoryOf, LIVE_TRADES } from "@/lib/trades";
 import { cn } from "@/lib/utils";
 import { WANTED_RADII } from "@/lib/wanted";
 
@@ -16,10 +16,12 @@ const selectClass =
 export function WantedForm({
   defaults,
 }: {
-  defaults: { part_number?: string; brand?: string; zip: string };
+  defaults: { part_number?: string; brand?: string; zip: string; trade: string };
 }) {
   const [state, action, pending] = useActionState<WantedFormState, FormData>(createWanted, { ok: false });
   const [radius, setRadius] = useState(150);
+  const [trade, setTrade] = useState(defaults.trade);
+  const [category, setCategory] = useState("");
   const today = new Date().toISOString().slice(0, 10);
 
   return (
@@ -46,12 +48,27 @@ export function WantedForm({
           className="w-full rounded-md border border-input bg-background px-3 py-2 text-base shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
       </div>
 
+      <fieldset className="flex flex-col gap-2">
+        <legend className="mb-2 font-semibold">Trade</legend>
+        <input type="hidden" name="trade" value={trade} />
+        <div className="flex flex-wrap gap-2">
+          {LIVE_TRADES.map((t) => (
+            <button key={t.value} type="button" aria-pressed={trade === t.value}
+              onClick={() => { setTrade(t.value); if (!isCategoryOf(t.value, category)) setCategory(""); }}
+              className={cn("flex h-11 items-center rounded-full border-2 px-4 text-sm font-semibold",
+                trade === t.value ? "border-primary bg-primary/10 text-primary" : "hover:border-foreground/30")}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="flex flex-col gap-2">
           <Label htmlFor="category" className="font-semibold">Category <span className="font-normal text-muted-foreground">(optional)</span></Label>
-          <select id="category" name="category" defaultValue="" className={selectClass}>
+          <select id="category" name="category" value={category} onChange={(e) => setCategory(e.target.value)} className={selectClass}>
             <option value="">Not sure</option>
-            {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+            {categoriesFor(trade).map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
           </select>
         </div>
         <div className="flex flex-col gap-2">

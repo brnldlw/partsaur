@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { extractPartFromImage, type ExtractResult } from "@/lib/ai/extract-part";
 import { MAX_PHOTOS } from "@/lib/categories";
 import { MAX_IMPORT_ROWS, parseListingInput } from "@/lib/listing-input";
+import { getCategory } from "@/lib/trades";
 import { listingTag, PAID_PLANS } from "@/lib/listings";
 import { runListingMatching } from "@/lib/matching";
 import { getAccount } from "@/lib/profile";
@@ -20,6 +21,12 @@ async function requireSeller() {
   if (!account.user) redirect("/login?next=/sell/new");
   if (!account.profile) redirect("/onboarding");
   return { ...account, user: account.user, profile: account.profile };
+}
+
+/** Categories with a seller confirmation (e.g. empty cylinders only) must have it ticked. */
+function categoryConfirmError(trade: string, category: string, confirmed: boolean) {
+  const def = getCategory(trade, category);
+  return def?.confirm && !confirmed ? `Please confirm: ${def.confirm.label}` : null;
 }
 
 function friendlyDbError(message: string) {
@@ -73,6 +80,7 @@ export async function saveListing(_prev: ListingFormState, formData: FormData): 
     brand: formData.get("brand"),
     part_number: formData.get("part_number"),
     description: formData.get("description"),
+    trade: formData.get("trade"),
     category: formData.get("category"),
     condition: formData.get("condition"),
     quantity: formData.get("quantity"),
@@ -80,8 +88,11 @@ export async function saveListing(_prev: ListingFormState, formData: FormData): 
     pickup: formData.get("pickup") === "on",
     ships: formData.get("ships") === "on",
     zip: formData.get("zip"),
-  });
+  }, { trade: profile.trade });
   if (!parsed.ok) return { ok: false, error: parsed.error };
+
+  const confirmError = categoryConfirmError(parsed.data.trade, parsed.data.category, formData.get("category_confirm") === "on");
+  if (confirmError) return { ok: false, error: confirmError };
 
   let photos: string[];
   try {
@@ -98,7 +109,7 @@ export async function saveListing(_prev: ListingFormState, formData: FormData): 
   if (!zipRow) return { ok: false, error: `We don't recognize zip code ${parsed.data.zip}.` };
 
   const listingId = String(formData.get("listing_id") ?? "") || null;
-  const fields = { ...parsed.data, trade: profile.trade, business_id: business?.id ?? null };
+  const fields = { ...parsed.data, business_id: business?.id ?? null };
 
   let id: string;
   if (listingId) {
@@ -172,12 +183,16 @@ export async function importListings(rows: Record<string, unknown>[]): Promise<I
   if (!Array.isArray(rows) || rows.length === 0) return { ok: false, error: "No rows to import." };
   if (rows.length > MAX_IMPORT_ROWS) return { ok: false, error: `Up to ${MAX_IMPORT_ROWS} rows per upload.` };
 
-  const defaultZip = business.zip ?? profile.zip;
+  const defaults = { zip: business.zip ?? profile.zip, trade: profile.trade };
   const rowErrors: { row: number; error: string }[] = [];
   const valid = rows.flatMap((raw, i) => {
-    const parsed = parseListingInput(raw, defaultZip);
+    const parsed = parseListingInput(raw, defaults);
     if (!parsed.ok) {
       rowErrors.push({ row: i + 1, error: parsed.error });
+      return [];
+    }
+    if (getCategory(parsed.data.trade, parsed.data.category)?.confirm) {
+      rowErrors.push({ row: i + 1, error: "This category needs a confirmation — list it one at a time from Sell." });
       return [];
     }
     return [parsed.data];
@@ -200,7 +215,6 @@ export async function importListings(rows: Record<string, unknown>[]): Promise<I
         ...r,
         seller_id: user.id,
         business_id: business.id,
-        trade: profile.trade,
         status: "active",
       })),
     )

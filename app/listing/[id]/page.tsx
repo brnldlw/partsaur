@@ -12,6 +12,7 @@ import { milesBetween } from "@/lib/geo";
 import { formatPrice, listingTag, photoUrl } from "@/lib/listings";
 import { getAccount } from "@/lib/profile";
 import { SITE_URL } from "@/lib/site";
+import { getCategory, tradeLabel } from "@/lib/trades";
 import { createClient } from "@/lib/supabase/server";
 import { createPublicClient } from "@/lib/supabase/public";
 
@@ -19,6 +20,7 @@ type PublicListing = {
   id: string;
   seller_id: string;
   title: string;
+  trade: string;
   brand: string | null;
   part_number: string | null;
   description: string | null;
@@ -129,6 +131,7 @@ async function ListingView({
   if (!listing) notFound();
 
   const [cover, ...rest] = listing.photos;
+  const categoryDef = getCategory(listing.trade, listing.category);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -184,11 +187,16 @@ async function ListingView({
           <Link href="/conditions" className="rounded-full bg-primary/15 px-3 py-1 text-sm font-semibold text-primary">
             {conditionLabel(listing.condition)}
           </Link>
-          <span className="rounded-full border px-3 py-1 text-sm">{categoryLabel(listing.category)}</span>
+          <span className="rounded-full border px-3 py-1 text-sm">{tradeLabel(listing.trade)} · {categoryLabel(listing.category, listing.trade)}</span>
           {listing.is_refrigerant && (
             <span className="rounded-full border border-primary px-3 py-1 text-sm font-semibold">EPA 608 required</span>
           )}
         </div>
+        {categoryDef?.confirm && (
+          <p role="note" className="rounded-lg border-2 border-primary bg-primary/10 p-3 text-sm font-semibold">
+            {categoryDef.confirm.caution}
+          </p>
+        )}
         <h1 className="text-2xl font-black leading-tight sm:text-3xl">{listing.title}</h1>
         {(listing.brand || listing.part_number) && (
           <p className="text-lg">
@@ -206,8 +214,16 @@ async function ListingView({
           {listing.quantity > 1 && <span className="ml-2 text-base font-normal text-muted-foreground">· {listing.quantity} available</span>}
         </p>
         <div className="flex flex-wrap gap-4 text-sm">
-          {listing.pickup && <span className="flex items-center gap-1.5"><Package className="size-4" /> Local pickup</span>}
-          {listing.ships && <span className="flex items-center gap-1.5"><Truck className="size-4" /> Ships</span>}
+          {listing.pickup && (
+            <span className="flex items-center gap-1.5">
+              <Package className="size-4" /> {categoryDef?.freight && !listing.ships ? <b>Pickup only</b> : "Local pickup"}
+            </span>
+          )}
+          {listing.ships && (
+            <span className="flex items-center gap-1.5">
+              <Truck className="size-4" /> {categoryDef?.freight ? <b>Ships by freight</b> : "Ships"}
+            </span>
+          )}
         </div>
 
         <Suspense fallback={<div className="h-14 animate-pulse rounded-lg bg-muted/40" />}>

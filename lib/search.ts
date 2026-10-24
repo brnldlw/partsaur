@@ -1,4 +1,5 @@
-import { CATEGORIES, CONDITIONS } from "@/lib/categories";
+import { CONDITIONS } from "@/lib/categories";
+import { categoriesFor, getTrade } from "@/lib/trades";
 import { createPublicClient } from "@/lib/supabase/public";
 
 export const RADII = [25, 50, 100, 150, 300] as const;
@@ -12,6 +13,7 @@ export type SearchQuery = {
   lat?: string;
   lng?: string;
   radius?: string;
+  trade?: string;
   category?: string;
   condition?: string;
   view?: string;
@@ -24,6 +26,7 @@ export type SearchHit = {
   brand: string | null;
   part_number: string | null;
   condition: string;
+  trade: string;
   category: string;
   price_cents: number | null;
   quantity: number;
@@ -73,10 +76,18 @@ export function cleanFilter(value: string | undefined, options: readonly { value
   return value && options.some((o) => o.value === value) ? value : null;
 }
 
+/** ?trade= must be a known trade; ?category= only counts within that trade. */
+export function cleanTradeFilters(query: SearchQuery) {
+  const trade = getTrade(query.trade) ? query.trade! : null;
+  const category = trade ? cleanFilter(query.category, categoriesFor(trade)) : null;
+  return { trade, category };
+}
+
 export async function searchListings(opts: {
   q?: string | null;
   location: SearchLocation | null;
   radius: number | null;
+  trade?: string | null;
   category?: string | null;
   condition?: string | null;
   partId?: string | null;
@@ -88,6 +99,7 @@ export async function searchListings(opts: {
     lat: opts.location?.lat ?? null,
     lng: opts.location?.lng ?? null,
     radius_miles: opts.location ? opts.radius : null,
+    p_trade: opts.trade ?? null,
     p_category: opts.category ?? null,
     p_condition: opts.condition ?? null,
     p_part_id: opts.partId ?? null,
@@ -113,4 +125,4 @@ export function searchHref(query: SearchQuery, changes: Partial<Record<keyof Sea
   return s ? `/search?${s}` : "/search";
 }
 
-export { CATEGORIES, CONDITIONS };
+export { CONDITIONS };

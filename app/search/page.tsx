@@ -9,14 +9,15 @@ import { ResultsMap } from "@/components/results-map";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getAccount } from "@/lib/profile";
+import { categoriesFor, LIVE_TRADES, tradeLabel } from "@/lib/trades";
 import {
-  CATEGORIES,
   CONDITIONS,
   DEFAULT_RADIUS,
   MAP_LIMIT,
   PAGE_SIZE,
   RADII,
   cleanFilter,
+  cleanTradeFilters,
   parseRadius,
   resolveLocation,
   searchHref,
@@ -43,7 +44,7 @@ async function Results({ searchParams }: { searchParams: Promise<SearchQuery> })
   const q = query.q?.trim() || null;
   const location = await resolveLocation(query, profile?.zip);
   const radius = parseRadius(query.radius);
-  const category = cleanFilter(query.category, CATEGORIES);
+  const { trade, category } = cleanTradeFilters(query);
   const condition = cleanFilter(query.condition, CONDITIONS);
   const view = query.view === "map" ? "map" : "list";
   const page = Math.max(1, Number(query.page) || 1);
@@ -53,6 +54,7 @@ async function Results({ searchParams }: { searchParams: Promise<SearchQuery> })
     q,
     location,
     radius,
+    trade,
     category,
     condition,
     limit: view === "map" ? MAP_LIMIT : PAGE_SIZE * page,
@@ -100,17 +102,36 @@ async function Results({ searchParams }: { searchParams: Promise<SearchQuery> })
         {query.radius && <input type="hidden" name="radius" value={query.radius} />}
         {view === "map" && <input type="hidden" name="view" value="map" />}
 
+        {trade && <input type="hidden" name="trade" value={trade} />}
         <div className="grid grid-cols-2 gap-2">
-          <select name="category" defaultValue={category ?? ""} aria-label="Category" className={selectClass}>
-            <option value="">All categories</option>
-            {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-          </select>
+          {trade ? (
+            <select name="category" defaultValue={category ?? ""} aria-label="Category" className={selectClass}>
+              <option value="">All {tradeLabel(trade)} categories</option>
+              {categoriesFor(trade).map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+            </select>
+          ) : (
+            <p className="flex h-12 items-center text-sm text-muted-foreground">Pick a trade below to filter by category</p>
+          )}
           <select name="condition" defaultValue={condition ?? ""} aria-label="Condition" className={selectClass}>
             <option value="">Any condition</option>
             {CONDITIONS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
           </select>
         </div>
       </form>
+
+      {/* Trade */}
+      <nav aria-label="Trade" className="mt-4 flex flex-wrap gap-2">
+        {[{ value: "", label: "All trades" }, ...LIVE_TRADES].map((t) => {
+          const active = (trade ?? "") === t.value;
+          return (
+            <Link key={t.value || "all"} href={searchHref(query, { trade: t.value || null, category: null, page: null })}
+              className={cn("flex h-11 items-center rounded-full border-2 px-4 text-sm font-semibold",
+                active ? "border-primary bg-primary text-primary-foreground" : "hover:border-foreground/30")}>
+              {t.label}
+            </Link>
+          );
+        })}
+      </nav>
 
       {/* Radius */}
       {location && (

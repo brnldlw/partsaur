@@ -6,6 +6,7 @@ export type WantedHit = {
   part_number: string | null;
   brand: string | null;
   description: string | null;
+  trade: string;
   category: string | null;
   needed_by: string | null;
   radius_miles: number;
@@ -23,6 +24,7 @@ export async function searchWanted(opts: {
   location: SearchLocation | null;
   radius: number | null;
   q?: string | null;
+  trade?: string | null;
   id?: string | null;
   limit?: number;
 }): Promise<{ hits: WantedHit[]; total: number }> {
@@ -32,6 +34,7 @@ export async function searchWanted(opts: {
     radius_miles: opts.location ? opts.radius : null,
     q: opts.q?.slice(0, 100) || null,
     p_id: opts.id ?? null,
+    p_trade: opts.trade ?? null,
     lim: opts.limit ?? 50,
     off: 0,
   });

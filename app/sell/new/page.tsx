@@ -6,6 +6,7 @@ import { ListingForm } from "@/components/listing-form";
 import { Button } from "@/components/ui/button";
 import { getAccount } from "@/lib/profile";
 import { contactNote, getListingAllowance } from "@/lib/seller";
+import { DEFAULT_TRADE, getTrade } from "@/lib/trades";
 
 export const metadata: Metadata = {
   title: "List a part",
@@ -47,6 +48,7 @@ async function NewListing() {
           brand: "",
           part_number: "",
           description: "",
+          trade: getTrade(profile.trade)?.status === "live" ? profile.trade : DEFAULT_TRADE,
           category: "",
           condition: "",
           quantity: "1",

@@ -7,13 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { WantedCard } from "@/components/wanted-card";
 import { getAccount } from "@/lib/profile";
+import { getTrade, LIVE_TRADES } from "@/lib/trades";
 import { DEFAULT_RADIUS, RADII, parseRadius, resolveLocation, type SearchQuery } from "@/lib/search";
 import { searchWanted } from "@/lib/wanted-search";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Wanted board — parts techs need now",
-  description: "HVAC/R techs posting the parts they need. Have one on the shelf? Let them know.",
+  description: "Techs posting the parts they need right now. Have one on the shelf? Let them know.",
   alternates: { canonical: "/wanted" },
 };
 
@@ -31,7 +32,8 @@ async function Board({ searchParams }: { searchParams: Promise<SearchQuery> }) {
   const radius = parseRadius(query.radius);
   const q = query.q?.trim() || null;
   const usingGps = Boolean(query.lat && query.lng && !query.zip);
-  const { hits, total } = await searchWanted({ location, radius, q });
+  const trade = getTrade(query.trade) ? query.trade! : null;
+  const { hits, total } = await searchWanted({ location, radius, q, trade });
 
   return (
     <>
@@ -48,7 +50,18 @@ async function Board({ searchParams }: { searchParams: Promise<SearchQuery> }) {
         </div>
         {usingGps && (<><input type="hidden" name="lat" value={query.lat} /><input type="hidden" name="lng" value={query.lng} /></>)}
         {query.radius && <input type="hidden" name="radius" value={query.radius} />}
+        {trade && <input type="hidden" name="trade" value={trade} />}
       </form>
+
+      <nav aria-label="Trade" className="mt-4 flex flex-wrap gap-2">
+        {[{ value: "", label: "All trades" }, ...LIVE_TRADES].map((t) => (
+          <Link key={t.value || "all"} href={href(query, { trade: t.value || undefined })}
+            className={cn("flex h-11 items-center rounded-full border-2 px-4 text-sm font-semibold",
+              (trade ?? "") === t.value ? "border-primary bg-primary text-primary-foreground" : "hover:border-foreground/30")}>
+            {t.label}
+          </Link>
+        ))}
+      </nav>
 
       {location ? (
         <nav aria-label="Distance" className="mt-4 flex flex-wrap gap-2">

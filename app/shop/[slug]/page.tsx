@@ -22,7 +22,7 @@ async function getStorefront(slug: string) {
 
   const { data: listings } = await supabase
     .from("listings")
-    .select("id, title, brand, part_number, condition, category, price_cents, quantity, pickup, ships, zip, is_refrigerant, created_at, listing_photos(storage_path, sort_order)")
+    .select("id, title, brand, part_number, condition, trade, category, price_cents, quantity, pickup, ships, zip, is_refrigerant, created_at, listing_photos(storage_path, sort_order)")
     .eq("business_id", shop.id)
     .eq("status", "active")
     .order("created_at", { ascending: false })

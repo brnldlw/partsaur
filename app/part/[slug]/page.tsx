@@ -19,6 +19,7 @@ type Part = {
   brand: string | null;
   part_number: string;
   category: string | null;
+  trade: string;
   slug: string;
 };
 
@@ -31,7 +32,7 @@ async function getPart(slug: string): Promise<Part | null> {
   }
   const { data } = await createPublicClient()
     .from("parts")
-    .select("id, brand, part_number, category, slug")
+    .select("id, brand, part_number, category, trade, slug")
     .eq("slug", slug)
     .maybeSingle<Part>();
   // Parts are created when listed, so don't remember "not found" for long.
@@ -47,7 +48,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const part = await getPart(slug);
   if (!part) return { title: "Part not found" };
   const name = partName(part);
-  const description = `Find ${name}${part.category ? ` (${categoryLabel(part.category)})` : ""} in stock near you — overstock and dead stock from local shops and supply houses. Free to search.`;
+  const description = `Find ${name}${part.category ? ` (${categoryLabel(part.category, part.trade)})` : ""} in stock near you — overstock and dead stock from local shops and supply houses. Free to search.`;
   return {
     title: `${name} — in stock near you`,
     description,
@@ -71,7 +72,7 @@ async function PartListings({ part, searchParams }: { part: Part; searchParams: 
     name: partName(part),
     mpn: part.part_number,
     ...(part.brand && { brand: { "@type": "Brand", name: part.brand } }),
-    ...(part.category && { category: categoryLabel(part.category) }),
+    ...(part.category && { category: categoryLabel(part.category, part.trade) }),
     url: `${SITE_URL}/part/${part.slug}`,
     ...(low != null && {
       offers: {
@@ -152,7 +153,7 @@ async function PartView({ params, searchParams }: { params: Promise<{ slug: stri
     <div className="flex flex-col gap-5">
       <div>
         {part.category && (
-          <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{categoryLabel(part.category)}</p>
+          <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{categoryLabel(part.category, part.trade)}</p>
         )}
         <h1 className="mt-1 text-3xl font-black leading-tight sm:text-4xl">
           {part.brand && <span>{part.brand} </span>}
