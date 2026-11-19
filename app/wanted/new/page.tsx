@@ -23,7 +23,8 @@ export default function NewWantedPage({ searchParams }: { searchParams: Promise<
   return (
     <div className="mx-auto max-w-xl px-4 py-10">
       <h1 className="mb-2 text-3xl font-black">Post a Wanted request</h1>
-      <p className="mb-6 text-muted-foreground">Unit down? Tell us what you need. We&apos;ll ping sellers nearby who have it.</p>
+      <p className="mb-2 text-muted-foreground">Unit down? Tell us what you need. We&apos;ll ping sellers nearby who have it.</p>
+      <p className="mb-6 text-sm font-semibold text-primary">Free — posting Wanted requests and messaging sellers never costs anything.</p>
       <Suspense fallback={<div className="h-96 animate-pulse rounded-lg bg-muted/40" />}>
         <NewWanted searchParams={searchParams} />
       </Suspense>

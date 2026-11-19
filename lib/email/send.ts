@@ -7,7 +7,7 @@ const FROM = "Partsaur <alerts@partsaur.com>";
 // Resend free plan: 100/day. Keep headroom, and stop "maybe" pings first.
 const DAILY_CAP = 95;
 const DAILY_CAP_LOW_PRIORITY = 60;
-const LOW_PRIORITY = new Set(["likely_match"]);
+const LOW_PRIORITY = new Set(["likely_match", "launch_pass_7d", "launch_pass_1d"]);
 
 export type EmailKind =
   | "exact_match"
@@ -18,7 +18,9 @@ export type EmailKind =
   | "new_message"
   | "listing_removed"
   | "cert_reviewed"
-  | "founding_open";
+  | "founding_open"
+  | "launch_pass_7d"
+  | "launch_pass_1d";
 
 export type Email = {
   kind: EmailKind;

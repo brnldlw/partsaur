@@ -175,3 +175,13 @@ export async function emailReservedSpots() {
   }
   redirect("/admin?emailed=1");
 }
+
+export async function runLaunchReminders() {
+  await requireAdmin();
+  const { sendLaunchPassReminders } = await import("@/lib/launch-emails");
+  const r = await sendLaunchPassReminders();
+  const msg = r.stage
+    ? `Sent ${r.sent} (${r.stage}). ${r.alreadySent} already had it.${r.stoppedEarly ? " Stopped at the daily email cap — the rest go tomorrow." : ""}`
+    : "Outside the send windows — nothing sent.";
+  redirect(`/admin/launch?ran=${encodeURIComponent(msg)}`);
+}

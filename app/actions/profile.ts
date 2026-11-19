@@ -1,8 +1,11 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { BUSINESS_TYPES } from "@/lib/plans";
+import { cleanReferralCode, REFERRAL_COOKIE } from "@/lib/referrals";
 import { ROLES, TRADES } from "@/lib/site";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export type ProfileState = { ok: boolean; error?: string };
@@ -104,8 +107,27 @@ export async function saveProfile(
     : await supabase.from("profiles").insert({ ...profile, id: user.id });
   if (error) return fail("profile save", error.message);
 
+  // Brand-new account: credit whoever shared their partsaur.com/r/CODE link.
+  if (!existing) {
+    const jar = await cookies();
+    const code =
+      cleanReferralCode(user.user_metadata?.ref) ?? cleanReferralCode(jar.get(REFERRAL_COOKIE)?.value);
+    if (code) {
+      await recordReferral(user.id, code).catch((e) => console.error("referral save failed:", e));
+      jar.delete(REFERRAL_COOKIE);
+    }
+  }
+
   if (mode === "onboarding") redirect("/account?welcome=1");
   return { ok: true };
+}
+
+/** referred_by isn't user-writable, so this runs with the server key. */
+async function recordReferral(userId: string, code: string) {
+  const admin = createAdminClient();
+  const { data: referrer } = await admin.from("profiles").select("id").eq("referral_code", code).maybeSingle();
+  if (!referrer || referrer.id === userId) return;
+  await admin.from("profiles").update({ referred_by: referrer.id }).eq("id", userId).is("referred_by", null);
 }
 
 function fail(step: string, message: string): ProfileState {

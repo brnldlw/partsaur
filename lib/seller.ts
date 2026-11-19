@@ -1,10 +1,16 @@
 import { FREE_LISTING_LIMIT } from "@/lib/categories";
+import { isLaunchPassActive } from "@/lib/launch";
 import { PAID_PLANS } from "@/lib/listings";
 import type { Business, Profile } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
 
 export function isPaid(business: Business | null) {
   return Boolean(business && PAID_PLANS.has(business.plan));
+}
+
+/** Paid seller features (unlimited listings, bulk upload, storefront): paid plan or the Free Launch Pass. */
+export function hasSellerFeatures(business: Business | null) {
+  return isPaid(business) || isLaunchPassActive();
 }
 
 /** Active listing count + whether the seller can add another. */
@@ -16,8 +22,9 @@ export async function getListingAllowance(profile: Profile, business: Business |
     .eq("seller_id", profile.id)
     .eq("status", "active");
   const active = count ?? 0;
-  const unlimited = isPaid(business);
-  return { active, unlimited, limit: FREE_LISTING_LIMIT, canAdd: unlimited || active < FREE_LISTING_LIMIT };
+  const unlimited = hasSellerFeatures(business);
+  const launchPass = unlimited && !isPaid(business);
+  return { active, unlimited, launchPass, limit: FREE_LISTING_LIMIT, canAdd: unlimited || active < FREE_LISTING_LIMIT };
 }
 
 export function contactNote(profile: Profile) {

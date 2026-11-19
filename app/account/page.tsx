@@ -5,6 +5,9 @@ import { Suspense } from "react";
 import { signOut } from "@/app/actions/auth";
 import { BillingCard } from "@/components/billing-card";
 import { Epa608Upload } from "@/components/epa608-upload";
+import { LaunchBanner } from "@/components/launch-banner";
+import { LaunchPassCard } from "@/components/launch-pass-card";
+import { ReferralCard } from "@/components/referral-card";
 import { ProfileForm } from "@/components/profile-form";
 import { Button } from "@/components/ui/button";
 import { isAdminEmail } from "@/lib/admin";
@@ -44,7 +47,10 @@ async function Account({ searchParams }: { searchParams: Promise<{ welcome?: str
         </div>
       )}
 
+      <LaunchBanner className="mb-6" />
+      <LaunchPassCard profile={profile} business={business} />
       <BillingCard profile={profile} business={business} email={user.email ?? ""} billing={billing} />
+      <ReferralCard code={profile.referral_code} />
 
       <div className="mb-8 grid grid-cols-2 gap-2">
         <Button asChild size="xl"><Link href="/sell/new">List a part</Link></Button>

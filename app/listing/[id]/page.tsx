@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { cacheLife, cacheTag } from "next/cache";
 import { MapPin, Package, Truck } from "lucide-react";
 import { ContactSeller } from "@/components/contact-seller";
+import { FoundingSellerBadge } from "@/components/founding-seller-badge";
 import { ReportButton } from "@/components/report-button";
 import { Button } from "@/components/ui/button";
 import { categoryLabel, conditionLabel } from "@/lib/categories";
@@ -40,6 +41,7 @@ type PublicListing = {
   lng: number | null;
   part_slug: string | null;
   storefront_slug: string | null;
+  founding_seller_number: number | null;
   photos: { storage_path: string }[];
 };
 
@@ -241,6 +243,7 @@ async function ListingView({
           )}
           {listing.business_name && ` (${listing.seller_name})`}
         </p>
+        <FoundingSellerBadge number={listing.founding_seller_number} className="self-start" />
 
         {listing.description && (
           <div>

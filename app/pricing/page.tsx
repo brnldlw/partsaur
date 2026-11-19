@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { cacheLife } from "next/cache";
+import { LaunchBanner } from "@/components/launch-banner";
 import { PlanOffer, PlanOfferSkeleton } from "@/components/plan-offer";
+import { isLaunchPassActive, LAUNCH_PASS_END_LABEL_LONG } from "@/lib/launch";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -14,7 +17,7 @@ const TIERS = [
   {
     who: "Buyers / Techs",
     price: "Free",
-    gets: "Search, contact sellers, post Wanted requests",
+    gets: "Search, message sellers, post Wanted requests — always free",
   },
   {
     who: "Individual sellers",
@@ -58,6 +61,28 @@ const TIERS = [
   },
 ];
 
+async function LaunchPassDetails() {
+  "use cache";
+  cacheLife("hours");
+  if (!isLaunchPassActive()) return null;
+  return (
+    <section id="launch-pass" className="mt-8 scroll-mt-20 rounded-xl border-2 border-primary bg-card p-5">
+      <h2 className="text-xl font-black sm:text-2xl">Free Launch Pass — everyone, until {LAUNCH_PASS_END_LABEL_LONG}</h2>
+      <ul className="mt-3 flex flex-col gap-1.5">
+        {["Unlimited listings", "Bulk CSV upload", "Your own storefront page (shops and supply houses)", "No card needed — nothing to cancel"].map((t) => (
+          <li key={t} className="flex gap-2"><span className="text-primary" aria-hidden>✓</span>{t}</li>
+        ))}
+      </ul>
+      <p className="mt-3 text-muted-foreground">
+        After March 31, accounts without a paid plan go back to Free: up to 10 active listings.
+        Anything you&apos;ve already listed stays up — you just can&apos;t add more past 10 until you
+        mark some sold or pick a plan. Want to keep unlimited? Lock in Founding Shop at $19/mo for life
+        below.
+      </p>
+    </section>
+  );
+}
+
 async function Banner({ searchParams }: { searchParams: Promise<{ soldout?: string; error?: string }> }) {
   const { soldout, error } = await searchParams;
   if (soldout) {
@@ -77,11 +102,14 @@ export default function PricingPage({ searchParams }: { searchParams: Promise<{ 
   return (
     <div className="mx-auto max-w-5xl px-4 py-12">
       <Suspense><Banner searchParams={searchParams} /></Suspense>
+      <LaunchBanner className="mb-6" link={false} />
       <h1 className="text-3xl font-black sm:text-5xl">Pricing</h1>
       <p className="mt-3 max-w-2xl text-lg text-muted-foreground">
         No surprises. Finding parts is free. Selling a few parts is free. Shops and supply houses
         that list a lot pay a flat monthly price.
       </p>
+
+      <LaunchPassDetails />
 
       <ul className="mt-8 divide-y rounded-xl border bg-card">
         {TIERS.map((t) => (

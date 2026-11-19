@@ -39,9 +39,12 @@ export function ContactSeller({
 
   if (!signedIn) {
     return (
-      <Button asChild size="xl" className="w-full">
-        <Link href={`/login?next=${encodeURIComponent(`/listing/${listingId}`)}`}>Sign in to message seller</Link>
-      </Button>
+      <div className="flex flex-col gap-2">
+        <Button asChild size="xl" className="w-full">
+          <Link href={`/login?next=${encodeURIComponent(`/listing/${listingId}`)}`}>Sign in to message seller — free</Link>
+        </Button>
+        <p className="text-xs text-muted-foreground">Free for buyers. No card, no fees — ever.</p>
+      </div>
     );
   }
 
@@ -54,7 +57,7 @@ export function ContactSeller({
       {shownError && <p role="alert" className="rounded-lg border-2 p-4">{CONTACT_ERRORS[shownError] ?? CONTACT_ERRORS.error}</p>}
       <form action={startListingConversation}>
         <input type="hidden" name="listing_id" value={listingId} />
-        <Button type="submit" size="xl" className="w-full"><MessageCircle /> Message seller</Button>
+        <Button type="submit" size="xl" className="w-full"><MessageCircle /> Message seller — free</Button>
       </form>
 
       {!phone ? (
@@ -75,7 +78,7 @@ export function ContactSeller({
         <p className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">{phone.name} prefers messages — use Message seller.</p>
       ) : null}
 
-      <p className="text-xs text-muted-foreground">Arrange payment and pickup directly. Inspect parts before you pay.</p>
+      <p className="text-xs text-muted-foreground">Messaging sellers is always free for buyers. Arrange payment and pickup directly. Inspect parts before you pay.</p>
     </div>
   );
 }

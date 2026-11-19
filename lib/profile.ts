@@ -13,6 +13,8 @@ export type Profile = {
   epa608_verified: boolean;
   show_phone: boolean;
   wanted_pings: boolean;
+  referral_code: string | null;
+  founding_seller_number: number | null;
 };
 
 export type Business = {
@@ -38,11 +40,24 @@ export async function getAccount() {
   } = await supabase.auth.getUser();
   if (!user) return { user: null, profile: null, business: null };
 
-  const { data: profile } = await supabase
+  const base = "id, display_name, phone, trade, role, business_id, zip, epa608_verified, show_phone, wanted_pings";
+  const first = await supabase
     .from("profiles")
-    .select("id, display_name, phone, trade, role, business_id, zip, epa608_verified, show_phone, wanted_pings")
+    .select(`${base}, referral_code, founding_seller_number`)
     .eq("id", user.id)
     .maybeSingle<Profile>();
+  let profile = first.data;
+  if (first.error) {
+    const error = first.error;
+    // Launch-promo columns missing (migration 0010 not run yet) — don't lock people out.
+    console.error("profile load failed, retrying without launch columns:", error.message);
+    ({ data: profile } = await supabase
+      .from("profiles")
+      .select(base)
+      .eq("id", user.id)
+      .maybeSingle<Profile>());
+    if (profile) profile = { ...profile, referral_code: null, founding_seller_number: null };
+  }
 
   let business: Business | null = null;
   if (profile?.business_id) {

@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { openBillingPortal } from "@/app/actions/billing";
+import { FoundingSellerBadge } from "@/components/founding-seller-badge";
 import { Button } from "@/components/ui/button";
 import { PAID_PLAN_CONFIG } from "@/lib/billing";
 import { PLAN_LABELS } from "@/lib/plans";
 import type { Business, Profile } from "@/lib/profile";
+import { isLaunchPassActive } from "@/lib/launch";
 import { isStripeEnabled } from "@/lib/stripe";
 
 const date = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
@@ -29,6 +31,7 @@ export function BillingCard({
   const paid = plan !== "free";
   const isFounding = plan === "founding_shop" || plan === "founding_supply";
   const status = business?.subscription_status;
+  const launchPass = !paid && isLaunchPassActive();
 
   return (
     <section className="mb-8 flex flex-col gap-3 rounded-xl border-2 bg-card p-5">
@@ -44,8 +47,10 @@ export function BillingCard({
         <p className="mt-1 text-2xl font-black">
           {PLAN_LABELS[plan]}
           {isFounding && <span className="ml-2 text-base font-semibold text-primary">— price locked</span>}
+          {launchPass && <span className="ml-2 text-base font-semibold text-primary">+ Launch Pass</span>}
         </p>
         {business && <p className="text-muted-foreground">{business.name}</p>}
+        <FoundingSellerBadge number={profile.founding_seller_number} className="mt-2" />
       </div>
 
       {paid && business && (
@@ -69,7 +74,7 @@ export function BillingCard({
         </div>
       )}
 
-      {!paid && (
+      {!paid && !launchPass && (
         <p className="text-muted-foreground">
           {profile.role === "tech" && !business
             ? "Free: search, message sellers, post Wanted requests, and up to 10 listings."
@@ -83,10 +88,10 @@ export function BillingCard({
             <Button type="submit" size="xl" variant="outline" className="w-full">Manage billing</Button>
           </form>
         )}
-        {!paid && (
+        {!paid && !launchPass && (
           <Button asChild size="xl" className="sm:flex-1"><Link href="/pricing">See plans</Link></Button>
         )}
-        {paid && business?.slug && (
+        {(paid || launchPass) && business?.slug && (
           <Button asChild size="xl" variant="outline" className="sm:flex-1"><Link href={`/shop/${business.slug}`}>Your storefront</Link></Button>
         )}
       </div>

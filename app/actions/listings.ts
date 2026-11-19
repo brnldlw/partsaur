@@ -7,7 +7,8 @@ import { extractPartFromImage, type ExtractResult } from "@/lib/ai/extract-part"
 import { MAX_PHOTOS } from "@/lib/categories";
 import { MAX_IMPORT_ROWS, parseListingInput } from "@/lib/listing-input";
 import { getCategory } from "@/lib/trades";
-import { listingTag, PAID_PLANS } from "@/lib/listings";
+import { listingTag } from "@/lib/listings";
+import { hasSellerFeatures } from "@/lib/seller";
 import { runListingMatching } from "@/lib/matching";
 import { getAccount } from "@/lib/profile";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -177,13 +178,13 @@ export type ImportResult = { ok: boolean; imported?: number; error?: string; row
 
 export async function importListings(rows: Record<string, unknown>[]): Promise<ImportResult> {
   const { user, profile, business } = await requireSeller();
-  if (!business || !PAID_PLANS.has(business.plan)) {
+  if (!hasSellerFeatures(business)) {
     return { ok: false, error: "Bulk upload is part of the Founding Shop and Supply House plans." };
   }
   if (!Array.isArray(rows) || rows.length === 0) return { ok: false, error: "No rows to import." };
   if (rows.length > MAX_IMPORT_ROWS) return { ok: false, error: `Up to ${MAX_IMPORT_ROWS} rows per upload.` };
 
-  const defaults = { zip: business.zip ?? profile.zip, trade: profile.trade };
+  const defaults = { zip: business?.zip ?? profile.zip, trade: profile.trade };
   const rowErrors: { row: number; error: string }[] = [];
   const valid = rows.flatMap((raw, i) => {
     const parsed = parseListingInput(raw, defaults);
@@ -214,7 +215,7 @@ export async function importListings(rows: Record<string, unknown>[]): Promise<I
       valid.map((r) => ({
         ...r,
         seller_id: user.id,
-        business_id: business.id,
+        business_id: business?.id ?? null,
         status: "active",
       })),
     )

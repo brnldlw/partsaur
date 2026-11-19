@@ -10,6 +10,9 @@ export function SiteFooter() {
         <div className="flex flex-col gap-1">
           <Wordmark className="text-lg" />
           <p className="text-muted-foreground">Find the part. Sell the dead stock.</p>
+          <p className="text-muted-foreground">
+            <span className="font-semibold text-foreground">Always free for buyers:</span> search, message sellers, post Wanted requests.
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
           <Link href="/pricing" className="py-2 hover:underline">Pricing</Link>

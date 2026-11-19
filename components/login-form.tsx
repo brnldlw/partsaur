@@ -8,7 +8,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/client";
 
-export function LoginForm({ next, googleEnabled }: { next: string; googleEnabled: boolean }) {
+export function LoginForm({
+  next,
+  googleEnabled,
+  referralCode,
+}: {
+  next: string;
+  googleEnabled: boolean;
+  /** From a partsaur.com/r/CODE link. Saved on new accounts so it survives opening the email link in another browser. */
+  referralCode?: string | null;
+}) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -25,7 +34,11 @@ export function LoginForm({ next, googleEnabled }: { next: string; googleEnabled
     setError(null);
     const { error } = await createClient().auth.signInWithOtp({
       email: email.trim(),
-      options: { emailRedirectTo: redirectTo(), shouldCreateUser: true },
+      options: {
+        emailRedirectTo: redirectTo(),
+        shouldCreateUser: true,
+        ...(referralCode && { data: { ref: referralCode } }),
+      },
     });
     setPending(false);
     if (error) {

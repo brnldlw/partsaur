@@ -1,10 +1,14 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { Camera, Megaphone, Search, Store, Warehouse, Wrench } from "lucide-react";
+import { Award, Camera, Megaphone, Search, Store, Warehouse, Wrench } from "lucide-react";
+import { FreeForBuyers } from "@/components/free-for-buyers";
+import { LaunchBanner } from "@/components/launch-banner";
 import { PlanOffer, PlanOfferSkeleton } from "@/components/plan-offer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { WaitlistForm } from "@/components/waitlist-form";
+import { getFoundingSellerBadgesLeft } from "@/lib/founding-sellers";
+import { FOUNDING_SELLER_CAP } from "@/lib/launch";
 import { TRADES } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -47,11 +51,44 @@ const FEATURES = [
   },
 ];
 
+async function FoundingSellerCounter() {
+  const left = await getFoundingSellerBadgesLeft();
+  if (left == null) return null;
+  return (
+    <div className="flex items-start gap-3 rounded-xl border-2 bg-card p-4">
+      <Award className="mt-0.5 size-6 shrink-0 text-primary" aria-hidden />
+      <div className="flex-1">
+        <p className="text-lg font-bold leading-snug" aria-live="polite">
+          {left > 0 ? (
+            <>
+              <span className="text-primary">{left}</span> of {FOUNDING_SELLER_CAP} Founding Seller badges left
+            </>
+          ) : (
+            <>All {FOUNDING_SELLER_CAP} Founding Seller badges are taken</>
+          )}
+        </p>
+        <p className="text-sm text-muted-foreground">
+          {left > 0
+            ? "Post your first listing to claim one. It stays on your listings and storefront for good."
+            : "Thanks to the first 100 sellers who got Partsaur going."}
+        </p>
+        <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-muted">
+          <div className="h-full rounded-full bg-primary" style={{ width: `${(left / FOUNDING_SELLER_CAP) * 100}%` }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   return (
     <>
+      <div className="mx-auto max-w-5xl px-4 pt-6">
+        <LaunchBanner />
+      </div>
+
       {/* Hero */}
-      <section className="mx-auto max-w-5xl px-4 pb-12 pt-12 sm:pt-20">
+      <section className="mx-auto max-w-5xl px-4 pb-12 pt-8 sm:pt-14">
         <div className="flex flex-wrap gap-2">
           {TRADES.map((t) => (
             <span
@@ -96,6 +133,12 @@ export default function Home() {
           <Button asChild size="xl" variant="outline">
             <Link href="#founding">Founding pricing</Link>
           </Button>
+        </div>
+        <FreeForBuyers className="mt-4" />
+        <div className="mt-6 max-w-2xl">
+          <Suspense fallback={<div className="h-28 animate-pulse rounded-xl border-2 bg-muted/40" />}>
+            <FoundingSellerCounter />
+          </Suspense>
         </div>
       </section>
 

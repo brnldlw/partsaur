@@ -107,6 +107,7 @@ export default function WantedBoardPage({ searchParams }: { searchParams: Promis
         <div>
           <h1 className="text-3xl font-black">Wanted</h1>
           <p className="text-muted-foreground">Parts techs need right now. Have one on the shelf? Tell them.</p>
+          <p className="mt-1 text-sm font-semibold text-primary">Posting a Wanted request is free.</p>
         </div>
         <Button asChild size="xl"><Link href="/wanted/new"><Plus /> Post a Wanted request</Link></Button>
       </div>

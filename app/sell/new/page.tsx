@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { LaunchBanner } from "@/components/launch-banner";
 import { ListingForm } from "@/components/listing-form";
 import { Button } from "@/components/ui/button";
 import { getAccount } from "@/lib/profile";
@@ -67,6 +68,7 @@ export default function SellPage() {
     <div className="mx-auto max-w-xl px-4 py-10">
       <h1 className="mb-2 text-3xl font-black">List a part</h1>
       <p className="mb-6 text-muted-foreground">Snap the label. Check the details. Done.</p>
+      <LaunchBanner className="mb-6" />
       <Suspense fallback={<div className="h-96 animate-pulse rounded-lg bg-muted/40" />}>
         <NewListing />
       </Suspense>

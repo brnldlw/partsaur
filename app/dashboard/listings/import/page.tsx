@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import { CsvImport } from "@/components/csv-import";
 import { Button } from "@/components/ui/button";
 import { getAccount } from "@/lib/profile";
-import { isPaid } from "@/lib/seller";
+import { hasSellerFeatures } from "@/lib/seller";
 
 export const metadata: Metadata = {
   title: "Bulk upload",
@@ -17,7 +17,7 @@ async function Import() {
   if (!user) redirect("/login?next=/dashboard/listings/import");
   if (!profile) redirect("/onboarding");
 
-  if (!isPaid(business)) {
+  if (!hasSellerFeatures(business)) {
     return (
       <div className="flex flex-col gap-4 rounded-xl border-2 p-5">
         <p className="text-lg font-bold">Bulk upload is a Founding Shop feature.</p>

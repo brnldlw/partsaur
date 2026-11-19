@@ -67,7 +67,7 @@ async function Listings({ searchParams }: { searchParams: Promise<{ error?: stri
 
       <p className="mb-4 text-sm text-muted-foreground">
         {allowance.unlimited
-          ? `${allowance.active} active listings · unlimited plan`
+          ? `${allowance.active} active listings · ${allowance.launchPass ? "unlimited free until March 31 (Launch Pass)" : "unlimited plan"}`
           : `${allowance.active} of ${allowance.limit} free active listings used`}
       </p>
 

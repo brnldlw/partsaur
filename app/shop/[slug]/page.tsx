@@ -3,12 +3,21 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { cacheLife, cacheTag } from "next/cache";
 import { Store } from "lucide-react";
+import { FoundingSellerBadge } from "@/components/founding-seller-badge";
 import { ListingCard } from "@/components/listing-card";
 import { BUSINESS_TYPES } from "@/lib/plans";
 import type { SearchHit } from "@/lib/search";
 import { createPublicClient } from "@/lib/supabase/public";
 
-type Storefront = { id: string; name: string; type: string; zip: string | null; slug: string; created_at: string };
+type Storefront = {
+  id: string;
+  name: string;
+  type: string;
+  zip: string | null;
+  slug: string;
+  created_at: string;
+  founding_seller_number: number | null;
+};
 
 async function getStorefront(slug: string) {
   "use cache";
@@ -71,6 +80,7 @@ async function Shop({ params }: { params: Promise<{ slug: string }> }) {
           <p className="text-muted-foreground">
             {[typeLabel, shop.zip && `Near ${shop.zip}`, `On Partsaur since ${new Date(shop.created_at).getFullYear()}`].filter(Boolean).join(" · ")}
           </p>
+          <FoundingSellerBadge number={shop.founding_seller_number} className="mt-2" />
         </div>
       </div>
       <p className="mb-4 font-semibold">{hits.length} part{hits.length === 1 ? "" : "s"} for sale</p>
